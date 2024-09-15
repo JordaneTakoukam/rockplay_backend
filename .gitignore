@@ -2,3 +2,4 @@ node_modules
 admin/client/build
 db
 /client
+.env
