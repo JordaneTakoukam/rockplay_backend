@@ -37,9 +37,10 @@ models.mongoose.connect(config.DB)
 app.use(express.static('client'));
 
 app.get('*', (req, res) => {
-    res.sendFile(
-        path.resolve(__dirname, 'client', 'index.html')
-    );
+    // res.sendFile(
+    //     path.resolve(__dirname, 'client', 'index.html'),
+    // );
+    res.json('Welcome to root api')
 });
 app.use('/', require('./middleware/index'), require('./routes/index'));
 server.listen(config.SERVER_PORT, () => { console.log(`server started on ${config.SERVER_PORT} port`) });

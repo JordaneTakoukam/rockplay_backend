@@ -1,4 +1,5 @@
 {
+  
   "name": "playzelo-backend",
   "version": "1.0.0",
   "description": "",
@@ -29,6 +30,7 @@
   },
   "homepage": "https://github.com/cryptofan0000/PlayZelo-Backend#readme",
   "dependencies": {
+    "@noble/secp256k1": "^2.1.0",
     "@sendgrid/mail": "^7.7.0",
     "@tatumio/tatum": "^1.37.26",
     "@vercel/node": "^2.8.11",
