@@ -1,12 +1,17 @@
-const isLocal = true;
-const pro = 'https://admin-services.playzelo.com/admin';
+const isLocal = process.env.REACT_APP_MODE === 'dev' ? true : false;
+
+
+// const pro = 'https://admin-services.playzelo.com/admin';
+const pro = 'https://admin-dashboard.minusplay.com/admin';
 const dev = 'http://localhost:6100/admin';
 const url = isLocal ? dev : pro;
 
 const Config = {
     Root: {
         apiUrl: `${url}`,
-        socketServerUrl: isLocal ? `http://localhost:6200` : 'https://admin-service.playzelo.com',
+        // socketServerUrl: isLocal ? `http://localhost:6200` : 'https://admin-service.playzelo.com',
+        // socketServerUrl: isLocal ? `http://localhost:6200` : 'https://admin-dashboard.minusplay.com',
+        socketServerUrl: null,
         socket: null
     },
     token: 'EscapeX-Admin-Token',
