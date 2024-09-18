@@ -4,17 +4,104 @@ module.exports = {
         {
             name: 'api-root',
             script: './server.js',
-
-            log_file: '/var/log/api-root.log', // Fichier de log
-            error_file: '/var/log/api-root-error.log', // Fichier de log des erreurs
-            out_file: '/var/log/api-root-out.log', // Fichier de log de sortie
-            pid_file: '/var/run/api-root.pid', // Fichier PID
-
+            log_file: '/var/log/api-root.log',
+            error_file: '/var/log/api-root-error.log',
+            out_file: '/var/log/api-root-out.log',
+            pid_file: '/var/run/api-root.pid',
             watch: true,
             watch_options: {
                 followSymlinks: false,
             },
         },
+        {
+            name: 'admin-service',
+            script: './admin/AdminService.js',
+            log_file: '/var/log/admin-service.log',
+            error_file: '/var/log/admin-service-error.log',
+            out_file: '/var/log/admin-service-out.log',
+            pid_file: '/var/run/admin-service.pid',
+            watch: true,
+        },
+        {
+            name: 'turtle-service',
+            script: './turtlerace/TurtleService.js',
+            log_file: '/var/log/turtle-service.log',
+            error_file: '/var/log/turtle-service-error.log',
+            out_file: '/var/log/turtle-service-out.log',
+            pid_file: '/var/run/turtle-service.pid',
+            watch: true,
+        },
+        {
+            name: 'scissors-service',
+            script: './scissors/ScissorsService.js',
+            log_file: '/var/log/scissors-service.log',
+            error_file: '/var/log/scissors-service-error.log',
+            out_file: '/var/log/scissors-service-out.log',
+            pid_file: '/var/run/scissors-service.pid',
+            watch: true,
+        },
+        {
+            name: 'mines-service',
+            script: './mines/MinesService.js',
+            log_file: '/var/log/mines-service.log',
+            error_file: '/var/log/mines-service-error.log',
+            out_file: '/var/log/mines-service-out.log',
+            pid_file: '/var/run/mines-service.pid',
+            watch: true,
+        },
+        {
+            name: 'chatroom-service',
+            script: './userchat/UserChatService.js',
+            log_file: '/var/log/chatroom-service.log',
+            error_file: '/var/log/chatroom-service-error.log',
+            out_file: '/var/log/chatroom-service-out.log',
+            pid_file: '/var/run/chatroom-service.pid',
+            watch: true,
+        },
+        {
+            name: 'manage-service',
+            script: './management/ManagementService.js',
+            log_file: '/var/log/manage-service.log',
+            error_file: '/var/log/manage-service-error.log',
+            out_file: '/var/log/manage-service-out.log',
+            pid_file: '/var/run/manage-service.pid',
+            watch: true,
+        },
+        {
+            name: 'dice-service',
+            script: './dice/DiceService.js',
+            log_file: '/var/log/dice-service.log',
+            error_file: '/var/log/dice-service-error.log',
+            out_file: '/var/log/dice-service-out.log',
+            pid_file: '/var/run/dice-service.pid',
+            watch: true,
+        },
+        {
+            name: 'slot-service',
+            script: './slot/SlotService.js',
+            log_file: '/var/log/slot-service.log',
+            error_file: '/var/log/slot-service-error.log',
+            out_file: '/var/log/slot-service-out.log',
+            pid_file: '/var/run/slot-service.pid',
+            watch: true,
+        },
+        {
+            name: 'plinko-service',
+            script: './plinko/PlinkoService.js',
+            log_file: '/var/log/plinko-service.log',
+            error_file: '/var/log/plinko-service-error.log',
+            out_file: '/var/log/plinko-service-out.log',
+            pid_file: '/var/run/plinko-service.pid',
+            watch: true,
+        },
+        {
+            name: 'crash-service',
+            script: './crash/CrashService.js',
+            log_file: '/var/log/crash-service.log',
+            error_file: '/var/log/crash-service-error.log',
+            out_file: '/var/log/crash-service-out.log',
+            pid_file: '/var/run/crash-service.pid',
+            watch: true,
+        }
     ],
-
 };
