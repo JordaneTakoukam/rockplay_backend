@@ -30,10 +30,15 @@ exports.createApp = (config) => {
             process.exit();
         });
 
+    app.get('/', (req, res) => {
+        res.json('Management service is start')
+    });
+
     if (app.get('env') === 'development')
         app.use(errorHandler({ dumpExceptions: true, showStack: true }));
     else
         app.use(errorHandler());
+
 
     app.set('port', config.serverInfo.port);
     return app;

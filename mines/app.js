@@ -30,6 +30,9 @@ exports.createApp = (config) => {
             process.exit();
         });
 
+    app.get('/', (req, res) => {
+        res.json('Mine service is start')
+    });
     if (app.get('env') === 'development')
         app.use(errorHandler({ dumpExceptions: true, showStack: true }));
     else

@@ -29,7 +29,10 @@ exports.createApp = (config) => {
             console.error({ title: 'mongodb connection error', message: err.message });
             process.exit();
         });
-
+        app.get('/', (req, res) => {
+            res.json('Plinko service is start')
+        });
+    
     if (app.get('env') === 'development')
         app.use(errorHandler({ dumpExceptions: true, showStack: true }));
     else

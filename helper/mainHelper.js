@@ -24,7 +24,8 @@ exports.generateMinesHash = (serverSeed, clientSeed, roundNumber, minesCount) =>
 }
 
 exports.generateDiceHash = (serverSeed, clientSeed, roundNumber, diceNumber) => {
-    return crypto.createHmac('sha512', `PlayZeloDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
+    // return crypto.createHmac('sha512', `PlayZeloDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
+    return crypto.createHmac('sha512', `MinusPlayDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
 }
 
 exports.generatePlinkoHash = (serverSeed, clientSeed, roundNumber, rowsCount, risk) => {

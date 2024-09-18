@@ -29,15 +29,18 @@ exports.createApp = (config) => {
             console.error({ title: 'mongodb connection error', message: err.message });
             process.exit();
         });
-    app.get('*', (req, res) => {
-        // res.sendFile(
-        //     path.resolve(__dirname, 'client', 'index.html'),
-        // );
-        res.json('Welcome to root crash api')
+    app.get('/', (req, res) => {
+
+        res.json('Crash service is start')
     });
-    if (app.get('env') === 'development')
+
+
+    // console.log("Current env = ", app.get('env'));
+
+    if (app.get('env') === 'development') {
         app.use(errorHandler({ dumpExceptions: true, showStack: true }));
-    else
+
+    } else
         app.use(errorHandler());
 
     app.set('port', config.serverInfo.port);

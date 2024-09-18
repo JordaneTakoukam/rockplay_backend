@@ -5,7 +5,10 @@ module.exports = class ManageSocket {
     socket = null;
 
     constructor() {
-        this.socket = io.connect(DEV_MDOE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://www.manage-service.playzelo.com`);
+        console.log("dev mode = ", DEV_MDOE);
+
+        // this.socket = io.connect(DEV_MDOE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://www.manage-service.playzelo.com`);
+        this.socket = io.connect(DEV_MDOE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manage-services.minusplay.com`);
         this.bind();
     }
 

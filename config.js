@@ -1,3 +1,7 @@
+
+require('dotenv').config();
+const DEV_MODE = process.env.NODE_ENV === 'dev' ? true : false;
+
 module.exports = {
     SERVER_PORT: 5000,
     JWT: {
@@ -37,7 +41,10 @@ module.exports = {
         }
     },
     NETWORK: 'testnet',
+    // SUBSCRIBE_URL: 'http:localhost:5000/api/v0/payment/webhook-handler',
     // SUBSCRIBE_URL: 'http://212.24.111.179:5000/api/v0/payment/webhook-handler',
-    SUBSCRIBE_URL: 'https://www.playzelo.com/api/v0/payment/webhook-handler',
-    DEV_MDOE: true
+    SUBSCRIBE_URL: DEV_MODE ?
+        'http://212.24.111.179:5000/api/v0/payment/webhook-handler'
+        : 'https://api-root.minusplay.com/api/v0/payment/webhook-handler',
+    DEV_MDOE: DEV_MODE,
 };
