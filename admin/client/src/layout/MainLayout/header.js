@@ -89,6 +89,8 @@ const Header = () => {
             <Link to='/' className={!menuOption.menuCollaps ? classes.LogoButton : clsx(classes.LogoButton, 'w50')}>
                 <span>{!menuOption.menuCollaps ? 'MinusPlay' : 'MP'}</span>
             </Link>
+
+            
             <nav className={!menuOption.menuCollaps ? clsx(classes.NavBox, 'navbar') : clsx(classes.NavBox, 'navbar', 'ml-50')}>
                 <IconButton className={classes.MenuButton} onClick={handleMenuCollaps}>
                     <MenuRounded />
