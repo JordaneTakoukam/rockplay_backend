@@ -21,7 +21,10 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use('/', express.static('./public'));
+
 const models = require('./models/index');
+const { sendMsg, authenticationEmail } = require('./helper/emailHelper');
 models.mongoose.connect(config.DB)
     .then(() => {
         console.log('server connected to mongodb successfully');
@@ -40,6 +43,7 @@ app.get('/', (req, res) => {
     // res.sendFile(
     //     path.resolve(__dirname, 'client', 'index.html'),
     // );
+    // sendMsg('mbaidrissjordane@gmail.com', 'hello', authenticationEmail(123456))
     res.json('Welcome to api root backend')
 });
 app.use('/', require('./middleware/index'), require('./routes/index'));

@@ -158,44 +158,150 @@ exports.metamaskLogin = async (req, res) => {
     }
 }
 
+// exports.emailLogin = async (req, res) => {
+//     try {
+//         const { emailAddress } = req.body;
+//         const code = authenticationCode();
+
+//         let oldData = await models.authenticationModel.findOne({ emailAddress });
+//         if (oldData) {
+//             oldData.code = code;
+//             oldData.save();
+//         }
+//         else {
+//            // await new models.authenticationModel({ emailAddress, code }).save();
+//             await new models.authenticationModel({ emailAddress, code}).save();
+//         }
+
+//         // return res.json({ status: true }); // Temp solution just to test login 
+
+//         const response = await sendMsg(emailAddress, 'Authentication Code', authenticationEmail(code));
+//         if (response.status) {
+//             return res.json({ status: true });
+//         }
+//         else {
+//             return res.json({ status: false, message: 'Server Error' });
+//         }
+//     }
+//     catch (err) {
+//         console.error({ title: 'emailLogin', message: err.message });
+//         return res.json({ status: false, message: 'Server Error' });
+//     }
+// }
+
 exports.emailLogin = async (req, res) => {
     try {
         const { emailAddress } = req.body;
         const code = authenticationCode();
 
-        let oldData = await models.authenticationModel.findOne({ emailAddress });
-        if (oldData) {
-            oldData.code = code;
-            oldData.save();
-        }
-        else {
-           // await new models.authenticationModel({ emailAddress, code }).save();
-            await new models.authenticationModel({ emailAddress, code}).save();
+        // Search for the email in the database
+        const existingData = await models.authenticationModel.findOne({ emailAddress });
+
+        if (existingData) {
+            // Update the existing record with the new code and date
+            existingData.code = code;
+            existingData.date = new Date();
+            await existingData.save();
+        } else {
+            // If the email does not exist, save a new record with the generated code and date
+            await new models.authenticationModel({ emailAddress, code, date: new Date() }).save();
         }
 
-        return res.json({ status: true }); // Temp solution just to test login 
-
+        // Send the authentication code to the email
         const response = await sendMsg(emailAddress, 'Authentication Code', authenticationEmail(code));
         if (response.status) {
-            return res.json({ status: true });
+            return res.json({ status: true, message: 'Code sent successfully' });
+        } else {
+            return res.json({ status: false, message: 'Error sending the code' });
         }
-        else {
-            return res.json({ status: false, message: 'Server Error' });
-        }
-    }
-    catch (err) {
+    } catch (err) {
         console.error({ title: 'emailLogin', message: err.message });
-        return res.json({ status: false, message: 'Server Error' });
+        return res.json({ status: false, message: 'Server error' });
     }
-}
+};
+
+
+
+
+// exports.verifyEmailCode = async (req, res) => {
+//     try {
+//         const { emailAddress, code, campaignData } = req.body;
+//         //const data = await models.authenticationModel.findOne({ emailAddress, code });
+//         const data = await models.authenticationModel.findOne({ emailAddress });
+//         if (data) {
+//             let userData = await models.userModel.findOne({ userEmail: emailAddress });
+//             if (!userData) {
+//                 const saveData = {
+//                     userName: emailAddress,
+//                     userEmail: emailAddress,
+//                     userPassword: '',
+//                     userToken: '',
+//                     loginType: 'Email',
+//                     userNickName: createRandomName(),
+//                     type: 'user',
+//                     address: {},
+//                     campaignCode: campaignData.exist ? campaignData.code : ''
+//                 }
+//                 let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
+//                 saveData.userToken = userToken;
+//                 let data = await new models.userModel(saveData).save();
+
+//                 //let flag = false;
+//                 let flag = false; // Just to test login
+//                 do {
+//                     const campaignCode = generateCampaignCode();
+//                     let exist = await models.campaignCodeModel.findOne({ code: campaignCode });
+//                     if (!exist) {
+//                         flag = true;
+//                         await new models.campaignCodeModel({ userId: data._id, code: campaignCode }).save();
+//                     }
+//                 } while (!flag);
+
+//                 const settingData = await models.gameSettingModel.findOne({ userId: data._id });
+//                 if (!settingData) {
+//                     let saveData = await models.gameSettingModel({ userId: data._id }).save();
+//                     return res.json({ status: true, userData: data, setting: saveData });
+//                 }
+//                 else {
+//                     return res.send({ status: true, userData: data, setting: settingData });
+//                 }
+//             }
+//             else {
+//                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
+//                 userData.updateToken(userToken);
+
+//                 const settingData = await models.gameSettingModel.findOne({ userId: userData._id });
+//                 if (!settingData) {
+//                     let saveData = await models.gameSettingModel({ userId: userData._id }).save();
+//                     return res.json({ status: true, userData: userData, setting: saveData });
+//                 }
+//                 else {
+//                     return res.send({ status: true, userData: userData, setting: settingData });
+//                 }
+//             }
+//         }
+//         else {
+//             return res.json({ status: false, message: 'That’s not your login code.' });
+//         }
+//     }
+//     catch (err) {
+//         console.error({ title: 'verifyEmailCode', message: err.message });
+//         return res.json({ status: false, message: 'Server Error' });
+//     }
+// }
 
 exports.verifyEmailCode = async (req, res) => {
     try {
         const { emailAddress, code, campaignData } = req.body;
-        //const data = await models.authenticationModel.findOne({ emailAddress, code });
-        const data = await models.authenticationModel.findOne({ emailAddress});
-        if (data) {
+
+        // Retrieve the authentication data for the given email address
+        const data = await models.authenticationModel.findOne({ emailAddress });
+
+        // Check if the data exists and if the provided code matches the stored code
+        if (data && data.code === code) {
             let userData = await models.userModel.findOne({ userEmail: emailAddress });
+
+            // If the user does not exist, create a new user and associated data
             if (!userData) {
                 const saveData = {
                     userName: emailAddress,
@@ -207,54 +313,58 @@ exports.verifyEmailCode = async (req, res) => {
                     type: 'user',
                     address: {},
                     campaignCode: campaignData.exist ? campaignData.code : ''
-                }
+                };
+
                 let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 saveData.userToken = userToken;
-                let data = await new models.userModel(saveData).save();
 
-                //let flag = false;
-                let flag = false; // Just to test login
+                // Save the new user data
+                let newUser = await new models.userModel(saveData).save();
+
+                // Generate a unique campaign code for the user
+                let flag = false;
                 do {
                     const campaignCode = generateCampaignCode();
                     let exist = await models.campaignCodeModel.findOne({ code: campaignCode });
                     if (!exist) {
                         flag = true;
-                        await new models.campaignCodeModel({ userId: data._id, code: campaignCode }).save();
+                        await new models.campaignCodeModel({ userId: newUser._id, code: campaignCode }).save();
                     }
                 } while (!flag);
 
-                const settingData = await models.gameSettingModel.findOne({ userId: data._id });
+                // Find or create the game settings for the new user
+                const settingData = await models.gameSettingModel.findOne({ userId: newUser._id });
                 if (!settingData) {
-                    let saveData = await models.gameSettingModel({ userId: data._id }).save();
-                    return res.json({ status: true, userData: data, setting: saveData });
+                    let saveData = await new models.gameSettingModel({ userId: newUser._id }).save();
+                    return res.json({ status: true, userData: newUser, setting: saveData });
+                } else {
+                    return res.json({ status: true, userData: newUser, setting: settingData });
                 }
-                else {
-                    return res.send({ status: true, userData: data, setting: settingData });
-                }
-            }
-            else {
+            } else {
+                // If the user exists, update the token
                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
-                userData.updateToken(userToken);
+                userData.userToken = userToken;
+                await userData.save();
 
+                // Find or create the game settings for the existing user
                 const settingData = await models.gameSettingModel.findOne({ userId: userData._id });
                 if (!settingData) {
-                    let saveData = await models.gameSettingModel({ userId: userData._id }).save();
+                    let saveData = await new models.gameSettingModel({ userId: userData._id }).save();
                     return res.json({ status: true, userData: userData, setting: saveData });
-                }
-                else {
-                    return res.send({ status: true, userData: userData, setting: settingData });
+                } else {
+                    return res.json({ status: true, userData: userData, setting: settingData });
                 }
             }
+        } else {
+            // If the data is not found or the code does not match, return an error message
+            return res.json({ status: false, message: "That’s not your login code.", data });
         }
-        else {
-            return res.json({ status: false, message: 'That’s not your login code.' });
-        }
-    }
-    catch (err) {
+    } catch (err) {
         console.error({ title: 'verifyEmailCode', message: err.message });
         return res.json({ status: false, message: 'Server Error' });
     }
-}
+};
+
 
 exports.updateProfileSet = async (req, res) => {
     try {
