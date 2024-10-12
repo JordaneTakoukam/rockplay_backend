@@ -102,7 +102,6 @@ exports.authenticationEmail = (code) => {
         <body>
             <div class="email-container">
                 <div class="header">
-                    <img src="https://api-root.minusplay.com/Logo.svg" alt="minusplay.com Logo" />
                     <h1>Your Authentication Code</h1>
                 </div>
                 <div class="content">
@@ -120,3 +119,5 @@ exports.authenticationEmail = (code) => {
         </html>
     `;
 };
+
+{/* <img src="https://api-root.minusplay.com/Logo.svg" alt="minusplay.com Logo" /> */}
