@@ -38,11 +38,7 @@ models.mongoose.connect(config.DB)
 app.use(express.static('client'));
 
 app.get('/', (req, res) => {
-    // res.sendFile(
-    //     path.resolve(__dirname, 'client', 'index.html'),
-    // );
-    // sendMsg('mbaidrissjordane@gmail.com', 'hello', authenticationEmail(123456))
-    res.json('Welcome to api root backend')
+    res.json('Welcome to api root backend.')
 });
 app.use('/', require('./middleware/index'), require('./routes/index'));
 server.listen(config.SERVER_PORT, () => { console.log(`server started on ${config.SERVER_PORT} port`) });
