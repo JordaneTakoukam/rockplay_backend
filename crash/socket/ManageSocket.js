@@ -1,12 +1,12 @@
 const io = require('socket.io-client');
-const { DEV_MDOE, MANAGEMENT_OPTION } = require('../../config');
+const { DEV_MODE, MANAGEMENT_OPTION } = require('../../config');
 
 module.exports = class ManageSocket {
     socket = null;
 
     constructor() {
-        // this.socket = io.connect(DEV_MDOE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://www.manage-service.playzelo.com`);
-        this.socket = io.connect(DEV_MDOE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manage-services.minusplay.com`);
+        // this.socket = io.connect(DEV_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://www.manage-service.playzelo.com`);
+        this.socket = io.connect(DEV_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manage-services.minusplay.com`);
         this.bind();
     }
     bind() {

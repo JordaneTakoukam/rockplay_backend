@@ -1,7 +1,7 @@
 const isLocal = process.env.REACT_APP_MODE === 'dev' ? true : false;
 
 
-console.log("App Mode = ", process.env.REACT_APP_MODE);
+// console.log("App Mode = ", process.env.REACT_APP_MODE);
 
 
 // const pro = 'https://admin-services.playzelo.com/admin';

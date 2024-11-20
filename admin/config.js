@@ -6,7 +6,7 @@ module.exports = {
     dbInfo: {
         host: '127.0.0.1',
         port: '27017',
-        name: 'PlayZelo'
+        name: 'MinusPlay'
     },
     jwt: {
         secret: 'csgoclubggjwttokenfetyuhgbcase45w368w3q',
@@ -19,7 +19,7 @@ module.exports = {
         id: 'admin',
         name: 'admin',
         pass: 'admin',
-        authKey: 'PlayZelo-Admin',
+        authKey: 'MinusPlay-Admin',
         commission: 10.00
     },
     gameInfo: {

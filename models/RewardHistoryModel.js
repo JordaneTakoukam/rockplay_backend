@@ -7,7 +7,7 @@ const ModelSchema = mongoose.Schema({
     rewardAmount: { type: Number, default: 0.0 },
     rewardReason: { type: String, default: '' },
     depositAmount: { type: Number, default: 0.0 },
-    depositCoinType: { type: String, default: 'ZELO' },
+    depositCoinType: { type: String, default: 'MUP' },
     date: { type: Date, default: new Date() }
 }, { autoIndex: true, timestamps: true });
 

@@ -9,7 +9,7 @@ const balanceObject = {
         { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
         { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
         { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
-        { coinType: 'ZELO', balance: 0, chain: '', type: '' }
+        { coinType: 'MUP', balance: 0, chain: '', type: '' }
     ]
 }
 

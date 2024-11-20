@@ -15,7 +15,7 @@ const runBackupCmd = () => {
         fs.mkdirSync(`./db/backup/${fileName}`, { recursive: true });
     }
     let backupProcess = spawn('mongodump', [
-        '--db=PlayZelo',
+        '--db=MinusPlay',
         `--out=./db/backup/${fileName}/`
     ]);
 

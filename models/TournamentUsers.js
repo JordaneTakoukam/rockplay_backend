@@ -6,7 +6,7 @@ const ModelSchema = mongoose.Schema({
     regDate: { type: Date, default: new Date() },
     wargerAmount: { type: Number, default: 0 },
     participateAmount: { type: Number, default: 0 },
-    coinType: { type: String, default: 'ZELO' },
+    coinType: { type: String, default: 'MUP' },
     rating: { type: Number, default: 0 },
     prizeAmount: { type: Number, default: 0 }
 }, { autoIndex: true, timestamps: true });

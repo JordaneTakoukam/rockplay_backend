@@ -4,7 +4,7 @@ const ModelSchema = mongoose.Schema({
     name: { type: String, default: '' },
     description: { type: String, default: '' },
     prizePoolAmount: { type: Number, default: '' },
-    prizePoolCoinType: { type: String, default: 'ZELO' },
+    prizePoolCoinType: { type: String, default: 'MUP' },
     winnerPercent1: { type: Number, default: 0 },
     winnerPercent2: { type: Number, default: 0 },
     winnerPercent3: { type: Number, default: 0 },

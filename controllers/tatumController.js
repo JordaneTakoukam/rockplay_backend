@@ -17,7 +17,10 @@ const NativeData = {
 };
 
 const createSubscription = async (data, subscriptionType = Tatum.SubscriptionType.ADDRESS_TRANSACTION) => {
+    console.log("start create subscription");
+
     try {
+
         const { address, chain, url } = data;
         const request = {
             type: subscriptionType,
@@ -28,7 +31,7 @@ const createSubscription = async (data, subscriptionType = Tatum.SubscriptionTyp
             }
         };
         const response = await TatumAxios.post('/subscription', JSON.stringify(request));
-        console.log(response.data);
+        console.log("reponse = ", response.data);
     }
     catch (err) {
         console.error({ title: 'tatumController - createSubscription', message: err.message });
@@ -121,6 +124,8 @@ exports.getDepositAddressFromAccount = async (data) => {
             const chain = getNetworkFromCoinType(coinType);
             const addressData = await TatumAxios.post(`/offchain/account/${accountInfo.dataObject.virtualAccount.id}/address`);
             const privateKey = await generatePrivateKey({ index: addressData.data.derivationKey, chain, mnemonic: accountInfo.dataObject.mnemonic });
+
+            // creer une souscription pour update le solde en cas de transaction depot ou retrait
             await createSubscription({ url: config.SUBSCRIBE_URL, chain: addressData.data.currency, address: addressData.data.address });
             return { ...addressData.data, ...privateKey };
         }
@@ -148,6 +153,7 @@ exports.getGasPrice = async (data) => {
 }
 
 exports.createBitcoinWallet = async () => {
+    // creation wallet depuis tatum
     try {
         const response = await TatumAxios.get('/bitcoin/wallet');
         const { mnemonic, xpub } = response.data;

@@ -26,7 +26,7 @@ exports.getDepositAddressFromAccount = async (req, res) => {
 
         if (coinType) {
             let walletData = await models.walletModel.findOne({ userId, currency: coinType });
-            if (walletData) {
+            if (walletData) {                
                 return res.json({ status: true, data: walletData });
             }
             else {
@@ -191,7 +191,10 @@ exports.withdrawTRONFromAccount = async (req, res) => {
     }
 }
 
+// ecouter les actions sur tatum et mettre a jour l'utilisateur
 exports.tatumWebhook = async (req, res) => {
+    console.log("Tatum webhook");
+
     try {
         let { address, amount, counterAddress, asset, blockNumber, txId, type, subscriptionType, tokenId } = req.body;
         let currency = { coinType: '', type: '' };
@@ -238,22 +241,22 @@ exports.getDailyReward = async (req, res) => {
         if (!userData)
             return res.json({ status: false, message: 'User not found' });
 
-        const rewardedData = await models.dailyRewardModel.findOne({ userId: userId, rewardToken: 'ZELO' }).sort({ rewardDate: '-1' });
+        const rewardedData = await models.dailyRewardModel.findOne({ userId: userId, rewardToken: 'MUP' }).sort({ rewardDate: '-1' });
         if (!rewardedData || (new Date(rewardedData.rewardDate).getDate() < new Date().getDate())) {
             const rewardData = await new models.dailyRewardModel({
                 userId: userId,
                 rewardDate: new Date(),
                 rewardAmount: 50,
-                rewardToken: 'ZELO'
+                rewardToken: 'MUP'
             }).save();
             if (!userData.balance) {
-                userData.balance = { ZELO: rewardData.rewardAmount };
+                userData.balance = { MUP: rewardData.rewardAmount };
             }
-            else if (!userData.balance.hasOwnProperty('ZELO')) {
-                userData.balance['ZELO'] = rewardData.rewardAmount;
+            else if (!userData.balance.hasOwnProperty('MUP')) {
+                userData.balance['MUP'] = rewardData.rewardAmount;
             }
             else {
-                userData.balance.ZELO = userData.balance.ZELO + rewardData.rewardAmount;
+                userData.balance.MUP = userData.balance.MUP + rewardData.rewardAmount;
             }
             await models.userModel.findOneAndUpdate({ _id: userId }, { balance: userData.balance });
             return res.json({ status: true, data: rewardData });
@@ -283,8 +286,8 @@ exports.getExchangeRate = async (req, res) => {
     let { from, to } = req.body;
     if (!from || !to) return res.json({ status: false, message: 'Invalid Request' });
 
-    if (from === 'ZELO') from = 'USDT';
-    if (to === 'ZELO') to = 'USDT';
+    if (from === 'MUP') from = 'USDT';
+    if (to === 'MUP') to = 'USDT';
 
     const response = await getExchangeRateFromBinanceApi(from, to);
     return res.json(response);
@@ -320,12 +323,12 @@ exports.swapCoin = async (req, res) => {
         }
 
         let originFrom;
-        if (from === 'ZELO') {
+        if (from === 'MUP') {
             originFrom = from;
             from = 'USDT';
         }
         let originTo;
-        if (to === 'ZELO') {
+        if (to === 'MUP') {
             originTo = to;
             to = 'USDT';
         }

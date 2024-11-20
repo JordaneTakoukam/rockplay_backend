@@ -5,7 +5,6 @@ const http = require('http');
 const app = express();
 const server = http.Server(app);
 const config = require('./config');
-const path = require('path');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 const initController = require('./controllers/initController');
@@ -24,7 +23,6 @@ app.use(function (req, res, next) {
 app.use('/', express.static('./public'));
 
 const models = require('./models/index');
-const { sendMsg, authenticationEmail } = require('./helper/emailHelper');
 models.mongoose.connect(config.DB)
     .then(() => {
         console.log('server connected to mongodb successfully');

@@ -1,6 +1,6 @@
 {
   
-  "name": "playzelo-backend",
+  "name": "minusplay-backend",
   
   "version": "1.0.0",
   
@@ -9,41 +9,19 @@
   "main": "server.js",
   
   "scripts": {
-  
-    
-  "start": "node server.js",
-  
-    
-  "dev": "nodemon server.js",
-  
-    
+  "start": "node server.js",  
+  "dev": "nodemon server.js",  
+
   "admin": "node admin/AdminService.js",
-  
-    
-  "turtle": "node turtlerace/TurtleService.js",
-  
-    
-  "scissors": "node scissors/ScissorsService.js",
-  
-    
-  "mines": "node mines/MinesService.js",
-  
-    
   "chatroom": "node userchat/UserChatService.js",
-  
-    
   "manage": "node management/ManagementService.js",
-  
-    
-  "dice": "node dice/DiceService.js",
-  
-    
-  "slot": "node slot/SlotService.js",
-  
-    
-  "plinko": "node plinko/PlinkoService.js",
-  
-    
+
+  "turtle": "node turtlerace/TurtleService.js", 
+  "scissors": "node scissors/ScissorsService.js", 
+  "mines": "node mines/MinesService.js",   
+  "dice": "node dice/DiceService.js",  
+  "slot": "node slot/SlotService.js",  
+  "plinko": "node plinko/PlinkoService.js",   
   "crash": "node crash/CrashService.js"
   
   },

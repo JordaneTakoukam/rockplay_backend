@@ -191,7 +191,7 @@ const WalletManagement = () => {
                             Object.keys(COINTYPES).map((key) => {
                                 return (
                                     <MenuItem key={key} value={key} className={classes.CustomMenuItem}>
-                                        <img className={classes.CurrencyIcon} src={key !== 'ZELO' ? `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/${key.toLowerCase()}.svg` : 'https://img.icons8.com/arcade/64/null/cheap-2.png'} alt='icon' />
+                                        <img className={classes.CurrencyIcon} src={key !== 'MUP' ? `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/${key.toLowerCase()}.svg` : 'https://img.icons8.com/arcade/64/null/cheap-2.png'} alt='icon' />
                                         <span>{key}</span>
                                     </MenuItem>
                                 );

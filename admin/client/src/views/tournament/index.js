@@ -116,7 +116,7 @@ const TournamentList = () => {
         name: '',
         description: '',
         prizePoolAmount: 0,
-        prizePoolCoinType: 'ZELO',
+        prizePoolCoinType: 'MUP',
         winnerPercent1: 0,
         winnerPercent2: 0,
         winnerPercent3: 0,

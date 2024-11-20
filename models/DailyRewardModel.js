@@ -4,7 +4,7 @@ const ModelSchema = mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
     rewardDate: { type: Date, default: Date() },
     rewardAmount: { type: Number, default: 10 },
-    rewardToken: { type: String, enum: ['BTC', 'ETH', 'TRX', 'ZELO'], default: 'ZELO' }
+    rewardToken: { type: String, enum: ['BTC', 'ETH', 'TRX', 'MUP'], default: 'MUP' }
 }, { autoIndex: true, timestamps: true });
 
 ModelSchema.set('toObject', { virtuals: true });

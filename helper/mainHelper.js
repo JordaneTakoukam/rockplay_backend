@@ -24,8 +24,8 @@ exports.generateMinesHash = (serverSeed, clientSeed, roundNumber, minesCount) =>
 }
 
 exports.generateDiceHash = (serverSeed, clientSeed, roundNumber, diceNumber) => {
-    // return crypto.createHmac('sha512', `PlayZeloDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
-    return crypto.createHmac('sha512', `MinusPlayDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
+    // return crypto.createHmac('sha512', `PlayMUPDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
+    return crypto.createHmac('sha512', `PlayMUPDice-${diceNumber}`).update(serverSeed + clientSeed + roundNumber + diceNumber).digest('hex');
 }
 
 exports.generatePlinkoHash = (serverSeed, clientSeed, roundNumber, rowsCount, risk) => {
@@ -76,7 +76,7 @@ exports.generateCampaignCode = (length = 12) => {
 }
 
 exports.getExchangeRateFromBinanceApi = async (coinType) => {
-    if (coinType === 'USDT' || coinType === 'ZELO') return { status: true, data: 1 };
+    if (coinType === 'USDT' || coinType === 'MUP') return { status: true, data: 1 };
 
     const fromUrl = `https://api.binance.com/api/v3/ticker/price?symbol=${coinType}TRY`;
     const toUrl = `https://api.binance.com/api/v3/ticker/price?symbol=USDTTRY`;

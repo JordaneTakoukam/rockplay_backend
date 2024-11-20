@@ -827,7 +827,7 @@ exports.claimCampaignAmount = async (req, res) => {
         });
 
         let userData = await models.userModel.findOne({ _id: mongoose.Types.ObjectId(userId) });
-        let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'ZELO');
+        let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'MUP');
         userData.balance.data[coinIndex].balance = userData.balance.data[coinIndex].balance + amount;
         await models.userModel.findOneAndUpdate({ _id: userId }, { balance: userData.balance });
         requestBalanceUpdate(userData);
@@ -901,7 +901,7 @@ exports.claimLockedBalance = async (req, res) => {
             await lockedData.save();
 
             let userData = await models.userModel.findOne({ _id: mongoose.Types.ObjectId(userId) });
-            let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'ZELO');
+            let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'MUP');
             userData.balance.data[coinIndex].balance = userData.balance.data[coinIndex].balance + claimAmount;
             userData.save();
             requestBalanceUpdate(userData);
@@ -1002,7 +1002,7 @@ exports.participateTournament = async (req, res) => {
                 return res.json({ status: false, message: 'Invalid request' });
             }
 
-            let currencyIndex = userData.balance.data.findIndex((item) => item.coinType === 'ZELO');
+            let currencyIndex = userData.balance.data.findIndex((item) => item.coinType === 'MUP');
             if (userData.balance.data[currencyIndex].balance < Number(tournamentData.priceAmount)) {
                 return res.json({ status: false, message: 'Not enough balance' });
             }
@@ -1015,7 +1015,7 @@ exports.participateTournament = async (req, res) => {
                 regDate: new Date(),
                 wargerAmount: 0,
                 participateAmount: tournamentData.priceAmount,
-                coinType: 'ZELO',
+                coinType: 'MUP',
                 rating: 0,
                 prizeAmountL: 0
             }).save();
