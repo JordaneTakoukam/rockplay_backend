@@ -1,24 +1,26 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 exports.sendMsg = async (to, subject, html) => {
     // Configure the Nodemailer transporter
     let transporter = nodemailer.createTransport({
-        host: "mail.privateemail.com", // Use the correct host for your email provider
-        port: 465, // Secure port
-        secure: true, // Set true for port 465, false for other ports
+        host: process.env.HOST, 
+        port: 465, 
+        secure: true, 
         auth: {
-            user: "contact@minusplay.com", // Use environment variables for sensitive information
-            pass: "minusplay2024@!", // Use environment variables for sensitive information
+            user: process.env.EMAIL_PRO, 
+            pass: process.env.PASSWORD, 
         },
     });
 
     // Email options
     const mailOptions = {
-        from: '"Minusplay" <no_reply@minusplay.com>',
+        from: `"Minusplay" <${process.env.NO_REPLY_SUB_EMAIL}>`,
         to: to,
         subject: subject,
         html: html,
     };
+    
 
     try {
         const info = await transporter.sendMail(mailOptions);
