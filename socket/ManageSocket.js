@@ -1,7 +1,7 @@
 const io = require('socket.io-client');
 const { MANAGEMENT_OPTION } = require('../config');
 
-const APP_MODE = process.env.NODE_ENV === 'dev';
+const APP_MODE = process.env.REACT_APP_MODE === 'dev';
 
 module.exports = class ManageSocket {
     socket = null;

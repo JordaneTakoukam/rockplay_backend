@@ -1,6 +1,6 @@
 
 require('dotenv').config();
-const DEV_MODE = process.env.NODE_ENV === 'dev' ? true : false;
+const DEV_MODE = process.env.REACT_APP_MODE === 'dev' ? true : false;
 
 module.exports = {
     SERVER_PORT: 5000,
