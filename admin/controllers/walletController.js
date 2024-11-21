@@ -2,9 +2,9 @@ const models = require('../../models/index');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Web3 = require('web3');
-const { INFURA_OPTION, NETWORK, TRONWEB_OPTION } = require('../../config');
+// const { INFURA_OPTION, NETWORK } = require('../../config');
 const tatumController = require('./tatumController');
-const web3 = new Web3(INFURA_OPTION[NETWORK].providerUrl);
+// const web3 = new Web3(INFURA_OPTION[NETWORK].providerUrl);
 
 // const TronWeb = async () => (await import('tronweb')).default;
 // const HttpProvider = TronWeb.providers.HttpProvider;
@@ -13,15 +13,15 @@ const web3 = new Web3(INFURA_OPTION[NETWORK].providerUrl);
 // const eventServer = new HttpProvider(TRONWEB_OPTION[NETWORK].providerUrl);
 // const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
-const getBalanceFromTronWeb = async (address) => {
+// const getBalanceFromTronWeb = async (address) => {
     // const balance = await tronWeb.trx.getBalance(address);
     // return balance;
-}
+// }
 
-const getBalanceFromInfura = async (address) => {
-    const balance = await web3.eth.getBalance(address);
-    return balance;
-}
+// const getBalanceFromInfura = async (address) => {
+//     const balance = await web3.eth.getBalance(address);
+//     return balance;
+// }
 
 
 const getBalanceFromTatum = async (address) => {

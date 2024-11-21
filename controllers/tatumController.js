@@ -17,8 +17,6 @@ const NativeData = {
 };
 
 const createSubscription = async (data, subscriptionType = Tatum.SubscriptionType.ADDRESS_TRANSACTION) => {
-    console.log("start create subscription");
-
     try {
 
         const { address, chain, url } = data;
