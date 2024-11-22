@@ -23,9 +23,12 @@ exports.getScissorsResult = async (data, socket) => {
 
         var dealerNumber = resulPrediction.dealerNumber;
 
+        // console.log("player = ", playerNumber);
+        // console.log("dealer = ", dealerNumber);
+        
         const response = await scissorsController.saveScissorsRound({ userId, betAmount, playerNumber: playerNumber, dealerNumber: dealerNumber, result: resulPrediction.result, coinType, roundNumber, clientSeed: seedData.clientSeedData.seed, serverSeed: seedData.serverSeedData.seed });
 
-        socketManager.sendBetResult({ playerNumber: playerNumber, dealerNumber: 1, winResult: result = resulPrediction.result, result: response }, socket);
+        socketManager.sendBetResult({ playerNumber: playerNumber, dealerNumber, winResult: result = resulPrediction.result, result: response }, socket);
         if (response.status) {
             setTimeout(() => {
                 socketManager.sendBetHistory({

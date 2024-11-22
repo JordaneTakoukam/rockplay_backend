@@ -19,7 +19,7 @@ module.exports = {
         { min: 5, max: 49.99, chance: 0.05 },
 
         // 2%
-        { min: 50, max: 99.9, chance: 0.02 },
+        { min: 50, max: 99.99, chance: 0.02 },
 
         // 1% 
         { min: 100, max: Infinity, chance: 0.01 },
