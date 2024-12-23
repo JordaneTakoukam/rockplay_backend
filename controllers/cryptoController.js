@@ -26,7 +26,7 @@ exports.getDepositAddressFromAccount = async (req, res) => {
 
         if (coinType) {
             let walletData = await models.walletModel.findOne({ userId, currency: coinType });
-            if (walletData) {                
+            if (walletData) {
                 return res.json({ status: true, data: walletData });
             }
             else {
@@ -193,7 +193,7 @@ exports.withdrawTRONFromAccount = async (req, res) => {
 
 // ecouter les actions sur tatum et mettre a jour l'utilisateur
 exports.tatumWebhook = async (req, res) => {
-    console.log("Tatum webhook");
+    console.log("\nTatum webhook start");
 
     try {
         let { address, amount, counterAddress, asset, blockNumber, txId, type, subscriptionType, tokenId } = req.body;
@@ -213,20 +213,30 @@ exports.tatumWebhook = async (req, res) => {
 
         let txData = await models.transactionModel.findOne({ txId });
         if (!txData) {
-            console.log('New Tatum Webhook ===>');
-            console.log(req.body);
-            await new models.transactionModel({ txId, amount, from: counterAddress, to: address, date: new Date(), blockNumber, subscriptionType, currency }).save();
+            console.log('\nNew Tatum Webhook ===>');
+            console.log('New Tatum Webhook data = ' + req.body);
+            const transaction = await new models.transactionModel({ txId, amount, from: counterAddress, to: address, date: new Date(), blockNumber, subscriptionType, currency }).save();
+            console.log("\nTransactions = " + transaction);
+
+
             let walletData = await models.walletModel.findOne({ address: address });
             if (walletData) {
                 let userData = await models.userModel.findOne({ _id: walletData.userId });
                 let balanceData = userData.balance.data.find((data) => data.coinType === currency.coinType && data.type === currency.type);
                 balanceData.balance += Number(amount);
                 await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
+
+                console.log("\nAmount add  = " + amount);
+                console.log("New Balance  = " + userData.balance);
+
             }
+        } else {
+            console.log(' Tatum Webhook Already exist ===>');
+
         }
     }
     catch (err) {
-        console.error({ title: 'cryptoController - tatumWebhook', message: err.message });
+        console.error({ title: 'error - cryptoController - tatumWebhook', message: err.message });
         return res.json({ status: false, data: null, message: 'Server Error' });
     }
 }
