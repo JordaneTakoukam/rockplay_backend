@@ -83,9 +83,9 @@ const useStyles = makeStyles(() => ({
 const headCells = [
     { value: 'name', label: 'Name', ischeck: true },
     { value: 'email', label: 'Email', ischeck: true },
-    { value: 'walletAddress', label: 'Wallet Address', ischeck: true },
+    // { value: 'walletAddress', label: 'Wallet Address', ischeck: true },
     { value: 'balance', label: 'Balance', ischeck: true },
-    { value: 'detail', label: 'Detail', ischeck: true },
+    { value: 'details', label: 'Detail', ischeck: true },
     { value: 'delete', label: 'Delete', ischeck: true }
 ];
 
@@ -231,9 +231,9 @@ const PlayerManagement = () => {
                                     <TableCell>
                                         {item.userEmail}
                                     </TableCell>
-                                    <TableCell>
-                                        {item.loginType === 'Wallet' ? item.userName : ''}
-                                    </TableCell>
+                                    {/* <TableCell>
+                                            {item.loginType === 'Wallet' ? item.userName : ''}
+                                        </TableCell> */}
                                     <TableCell style={{ width: '30%' }}>
                                         <Select
                                             labelId="currencyType"
@@ -243,15 +243,28 @@ const PlayerManagement = () => {
                                         >
                                             {
                                                 item.balance.data.map((balance, index) => {
+                                                    // Ignore cryptocurrencies starting with "usdt"
+                                                    if (balance.coinType.toLowerCase().startsWith('usdt')) {
+                                                        return null; // Skip rendering this item
+                                                    }
+
                                                     return (
-                                                        <MenuItem key={index} value={index} className={classes.CustomMenuItem} >
-                                                            {/* <img className={classes.CurrencyIcon} src={key !== 'ZELO' ? `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/${key.toLowerCase()}.svg` : 'https://img.icons8.com/arcade/64/null/cheap-2.png'} alt='icon' /> */}
-                                                            <img src={`/assets/images/coins/${balance.coinType.toLowerCase()}.png`} className={classes.CurrencyIcon} alt="icon" />
-                                                            <span>{balance.coinType} {balance.type === 'native' ? '' : `(${balance.type})`} : {balance.balance}</span>
+                                                        <MenuItem key={index} value={index} className={classes.CustomMenuItem}>
+                                                            <img
+                                                                src={`/assets/images/coins/${balance.coinType.toLowerCase()}.png`}
+                                                                className={classes.CurrencyIcon}
+                                                                alt="icon"
+                                                            />
+                                                            <span>
+                                                                {balance.coinType}
+                                                                {balance.coinType.toLowerCase() === 'mup' ? '' : balance.type === 'native' ? '' : `(${balance.type})`}
+                                                                : {balance.balance}
+                                                            </span>
                                                         </MenuItem>
                                                     );
                                                 })
                                             }
+
                                         </Select>
                                     </TableCell>
                                     <TableCell className={classes.ActionCell}>
