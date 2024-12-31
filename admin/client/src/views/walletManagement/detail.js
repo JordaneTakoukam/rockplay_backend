@@ -119,7 +119,7 @@ const WalletDetail = () => {
 			withdrawList.map((withdraw) => (
 				withdrawAmount += Number(withdraw.amount)
 			));
-			setWithdrawFee(Fee[walletDetail?.walletDetail[0]?.currency]);
+			// setWithdrawFee(Fee[walletDetail?.walletDetail[0]?.currency]);
 			setTotalWithdraw(withdrawAmount);
 		}
 	}, [walletDetail]);
@@ -132,6 +132,8 @@ const WalletDetail = () => {
 				id: queryData.id
 			};
 			const response = await getWalletDetail(requestData);
+			console.log(`initFunc response WalletDetail = ${response}`);
+
 			if (response.status)
 				setWalletDetail(response.data);
 			hideLoading();
@@ -148,6 +150,10 @@ const WalletDetail = () => {
 			coinType: walletDetail?.walletDetail[0]?.currency
 		};
 		const response = await withdrawFromAddress(requestData);
+
+		console.log(`requestData = ${requestData}`);
+		console.log(`reponse = ${response}`);
+
 		if (response.status) {
 			if (response?.data?.completed) {
 				addToast('Withdraw successfully completed', { appearance: 'success', autoDismiss: true });
@@ -174,7 +180,7 @@ const WalletDetail = () => {
 				<Box className={classes.InfoHeaderBox}>
 					Wallet Detail: {walletDetail?.walletDetail[0]?.address}
 					<Box>
-						<Button onClick={handleModalOpen} variant="contained">Withdraw From Address</Button>
+						<Button onClick={handleModalOpen} variant="contained">Withdraw From Address Testnet</Button>
 					</Box>
 				</Box>
 				<Grid container m={0}>
