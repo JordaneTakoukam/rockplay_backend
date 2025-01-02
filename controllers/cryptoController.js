@@ -81,6 +81,7 @@ exports.getBalanceFromAccount = async (req, res) => {
 
 exports.withdrawFromAccount = async (req, res) => {
     try {
+
         const { coinType } = req.body;
 
         if (coinType === 'BTC')
@@ -100,6 +101,9 @@ exports.withdrawFromAccount = async (req, res) => {
 
 exports.withdrawBTCFromAccount = async (req, res) => {
     try {
+        console.log("entrer ici ==> retrait pour le client vers son wallet");
+
+
         const { address, amount, userId, coinType } = req.body;
         if (!address || !amount) {
             return res.json({ status: false, data: null, message: 'Invalid Request' });
@@ -113,7 +117,9 @@ exports.withdrawBTCFromAccount = async (req, res) => {
         if (!walletData)
             return res.json({ status: false, message: 'Not enough balance' });
 
+
         let response = await tatumController.withdrawBTCFromAccount({ address, amount, myAddress: walletData.address, currency: coinType });
+
         if (response !== null) {
             userData.balance[coinType] = Number(userData.balance[coinType]) - Number(amount);
             await models.userModel.findOneAndUpdate({ _id: userId }, { balance: userData.balance });

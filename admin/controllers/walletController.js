@@ -14,8 +14,8 @@ const tatumController = require('./tatumController');
 // const tronWeb = new TronWeb(fullNode, solidityNode, eventServer);
 
 // const getBalanceFromTronWeb = async (address) => {
-    // const balance = await tronWeb.trx.getBalance(address);
-    // return balance;
+// const balance = await tronWeb.trx.getBalance(address);
+// return balance;
 // }
 
 // const getBalanceFromInfura = async (address) => {
@@ -197,6 +197,8 @@ exports.getWalletDetail = async (req, res) => {
 
 exports.withdrawFromAddress = async (req, res) => {
     try {
+        console.log("ici");
+
         const { from, to, amount, fee, coinType } = req.body;
         if (!from || !to || !amount || !fee || !coinType)
             return res.json({ status: false, message: 'Invalid Request' });

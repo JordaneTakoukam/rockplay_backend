@@ -4,6 +4,8 @@ const DEV_MODE = process.env.REACT_APP_MODE === 'dev' ? true : false;
 
 module.exports = {
     SERVER_PORT: 5000,
+    NETWORK: 'testnet',
+
     JWT: {
         expireIn: '1h',
         secret: process.env.JWT_SECRET
@@ -15,21 +17,19 @@ module.exports = {
         port: 4000
     },
 
-    NETWORK: 'testnet',
 
-    // --------------------- api blockain, creation de porte feuille, transaction
     TATUM_OPTION: {
         // ----------- Environnement de test (fausses cryptos pour simulations).
         testnet: {
             apikey: process.env.TATUM_TESTNET_API_KEY,
             virtualAccount: 'MinusplayPaymentTestnet',
-            withdrawFee: '0.00001'
+            withdrawFee: '0.000005'
         },
         // -------- Environnement réel pour les transactions avec des cryptos réelles.
         mainnet: {
             apikey: process.env.TATUM_MAINNET_API_KEY,
             virtualAccount: 'MinusplayPaymentMainnet',
-            withdrawFee: '0.00001'
+            // withdrawFee: '0.00001'
         }
     },
 

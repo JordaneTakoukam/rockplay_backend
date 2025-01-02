@@ -164,10 +164,14 @@ exports.createBitcoinWallet = async () => {
 }
 
 exports.withdrawBTCFromAccount = async (data) => {
+    console.log("Tatum withdraw account");
+
     try {
         const { address, amount, myAddress, currency } = data;
         const keyName = `BTCWalletInfo`;
         const accountInfo = await models.settingModel.findOne({ key: keyName });
+
+
         if (accountInfo) {
             const request = {
                 senderAccountId: accountInfo.dataObject.virtualAccount.id,
@@ -175,8 +179,14 @@ exports.withdrawBTCFromAccount = async (data) => {
                 amount: Number(Number(amount).toString()).toFixed(8).toString(),
                 mnemonic: accountInfo.dataObject.mnemonic,
                 xpub: accountInfo.dataObject.xpub,
+                fee: config.TATUM_OPTION[config.NETWORK].withdrawFee,
             }
+
             const response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
+            console.log("\nresponse = ", JSON.stringify(response));
+
+
+
             if (response.data.completed) {
                 await new models.transactionModel({
                     accountId: accountInfo.dataObject.virtualAccount.id,

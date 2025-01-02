@@ -119,7 +119,7 @@ const WalletDetail = () => {
 			withdrawList.map((withdraw) => (
 				withdrawAmount += Number(withdraw.amount)
 			));
-			// setWithdrawFee(Fee[walletDetail?.walletDetail[0]?.currency]);
+			setWithdrawFee(Fee[walletDetail?.walletDetail[0]?.currency]);
 			setTotalWithdraw(withdrawAmount);
 		}
 	}, [walletDetail]);
@@ -132,7 +132,7 @@ const WalletDetail = () => {
 				id: queryData.id
 			};
 			const response = await getWalletDetail(requestData);
-			console.log(`initFunc response WalletDetail = ${response}`);
+			console.log(`initFunc response WalletDetail = ${JSON.stringify(response)}`);
 
 			if (response.status)
 				setWalletDetail(response.data);
@@ -141,34 +141,48 @@ const WalletDetail = () => {
 	};
 
 	const withdrawRequest = async () => {
-		showLoading();
-		const requestData = {
-			from: walletDetail?.walletDetail[0]?.address,
-			to: withdrawToAddress,
-			amount: withdrawAmount,
-			fee: withdrawFee,
-			coinType: walletDetail?.walletDetail[0]?.currency
-		};
-		const response = await withdrawFromAddress(requestData);
+		try {
+			showLoading();
 
-		console.log(`requestData = ${requestData}`);
-		console.log(`reponse = ${response}`);
+			if (!walletDetail?.walletDetail?.[0]) {
+				addToast('Wallet details are missing', { appearance: 'error', autoDismiss: true });
+				hideLoading();
+				return;
+			}
 
-		if (response.status) {
-			if (response?.data?.completed) {
-				addToast('Withdraw successfully completed', { appearance: 'success', autoDismiss: true });
-				setWithdrawTxId(response.data.txId);
-				initFunc();
+			const requestData = {
+				from: walletDetail.walletDetail[0]?.address ?? "",
+				to: withdrawToAddress ?? "",
+				amount: withdrawAmount ?? "0",
+				fee: withdrawFee ?? "0",
+				coinType: walletDetail.walletDetail[0]?.currency ?? "BTC",
+			};
+
+			console.log(`requestData = ${JSON.stringify(requestData)}`);
+
+			const response = await withdrawFromAddress(requestData);
+
+			console.log(`response = ${JSON.stringify(response)}`);
+
+			if (response?.status) {
+				if (response.data?.completed) {
+					addToast('Withdraw successfully completed', { appearance: 'success', autoDismiss: true });
+					setWithdrawTxId(response.data.txId);
+					initFunc();
+				} else {
+					addToast('Error occurred during withdrawal', { appearance: 'warning', autoDismiss: true });
+				}
+			} else {
+				addToast(response?.message ?? 'Unknown error occurred', { appearance: 'error', autoDismiss: true });
 			}
-			else {
-				addToast('Error occured from withdraw', { appearance: 'warning', autoDismiss: true });
-			}
+		} catch (error) {
+			console.error('Withdraw request failed', error);
+			addToast('An unexpected error occurred', { appearance: 'error', autoDismiss: true });
+		} finally {
+			hideLoading();
 		}
-		else {
-			addToast(response.message, { appearance: 'error', autoDismiss: true })
-		}
-		hideLoading();
 	};
+
 
 	const handleCopyText = (text) => {
 		window.navigator.clipboard.writeText(text);
