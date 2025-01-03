@@ -132,7 +132,7 @@ const WalletDetail = () => {
 				id: queryData.id
 			};
 			const response = await getWalletDetail(requestData);
-			console.log(`initFunc response WalletDetail = ${JSON.stringify(response)}`);
+			// console.log(`initFunc response WalletDetail = ${JSON.stringify(response)}`);
 
 			if (response.status)
 				setWalletDetail(response.data);
@@ -154,11 +154,10 @@ const WalletDetail = () => {
 				from: walletDetail.walletDetail[0]?.address ?? "",
 				to: withdrawToAddress ?? "",
 				amount: withdrawAmount ?? "0",
-				fee: withdrawFee ?? "0",
+				// fee: withdrawFee ?? "0",
 				coinType: walletDetail.walletDetail[0]?.currency ?? "BTC",
 			};
 
-			console.log(`requestData = ${JSON.stringify(requestData)}`);
 
 			const response = await withdrawFromAddress(requestData);
 
@@ -194,7 +193,7 @@ const WalletDetail = () => {
 				<Box className={classes.InfoHeaderBox}>
 					Wallet Detail: {walletDetail?.walletDetail[0]?.address}
 					<Box>
-						<Button onClick={handleModalOpen} variant="contained">Withdraw From Address Testnet</Button>
+						<Button onClick={handleModalOpen} variant="contained">Withdraw From Address</Button>
 					</Box>
 				</Box>
 				<Grid container m={0}>

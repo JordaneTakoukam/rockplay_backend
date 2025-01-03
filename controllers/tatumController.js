@@ -163,56 +163,164 @@ exports.createBitcoinWallet = async () => {
     }
 }
 
+// exports.withdrawBTCFromAccount = async (data) => {
+//     console.log("Tatum withdraw account");
+
+//     try {
+//         // Déstructuration des données reçues
+//         const { address, amount, myAddress, currency } = data;
+
+//         // Récupérer les informations du compte à partir de la base de données
+//         const keyName = `BTCWalletInfo`;
+//         const accountInfo = await models.settingModel.findOne({ key: keyName });
+
+//         if (!accountInfo) {
+//             console.log({ title: 'tatumController - withdrawBTCFromAccount', message: 'AccountInfo Null' });
+//             return null;  // Retourne null si aucune info de compte n'est trouvée
+//         }
+
+//         // Préparer la requête avec les informations du compte et les données fournies
+//         const request = {
+//             senderAccountId: accountInfo.dataObject.virtualAccount.id,
+//             address: address,
+//             amount: Number(amount).toFixed(8),  // Assurez-vous que le montant est bien formaté à 8 décimales
+//             mnemonic: accountInfo.dataObject.mnemonic,
+//             xpub: accountInfo.dataObject.xpub,
+//             fee: config.configWithdraw.btc.fee.toString()  // Utilisation des frais configurés
+//         };
+
+//         // Envoi de la requête pour transférer les BTC
+//         let response;  // Déclaration de la variable response
+//         try {
+//             response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
+//             console.log("\nresponse = ", JSON.stringify(response));
+
+//         } catch (e) {
+//             // Gérer les erreurs de requête
+//             console.error("\nErreur lors de la requête de transfert BTC : ", JSON.stringify(e.response ? e.response.data.cause : e));
+//             return e.response ? e.response.data.cause : e;  // Retourne null si la requête échoue
+//         }
+
+//         // Vérification du succès de la transaction
+//         if (response.data && response.data.completed) {
+//             // Enregistrer la transaction dans la base de données
+//             await new models.transactionModel({
+//                 accountId: accountInfo.dataObject.virtualAccount.id,
+//                 amount: Number(amount),
+//                 reference: '',
+//                 currency: currency,
+//                 txId: response.data.txId,
+//                 from: myAddress,
+//                 to: address,
+//                 date: new Date(),
+//                 index: '',
+//                 subscriptionType: '#'
+//             }).save();
+
+//             return response.data;  // Retourner les données de la réponse si la transaction est réussie
+//         } else {
+//             console.log("La transaction n'a pas pu être complétée.");
+//             return null;
+//         }
+
+//     } catch (err) {
+//         // Gestion des erreurs non liées à la requête axios
+//         console.error({ title: 'tatumController - withdrawBTCFromAccount', message: err.message });
+//         return null;  // Retourne null en cas d'erreur
+//     }
+// };
+
+
 exports.withdrawBTCFromAccount = async (data) => {
     console.log("Tatum withdraw account");
 
     try {
         const { address, amount, myAddress, currency } = data;
+
+        // Validate inputs
+        if (!address || !amount || isNaN(amount) || amount <= 0) {
+            return { error: 'Invalid address or amount provided.' };
+        }
+
         const keyName = `BTCWalletInfo`;
         const accountInfo = await models.settingModel.findOne({ key: keyName });
 
+        if (!accountInfo) {
+            console.error({ title: 'tatumController - withdrawBTCFromAccount', message: 'AccountInfo Null' });
+            return { error: 'Account information not found.' };
+        }
 
-        if (accountInfo) {
-            const request = {
-                senderAccountId: accountInfo.dataObject.virtualAccount.id,
-                address: address,
-                amount: Number(Number(amount).toString()).toFixed(8).toString(),
-                mnemonic: accountInfo.dataObject.mnemonic,
-                xpub: accountInfo.dataObject.xpub,
-                fee: config.TATUM_OPTION[config.NETWORK].withdrawFee,
-            }
+        const fee = parseFloat(config.configWithdraw.btc.fee);
+        const minAmount = parseFloat(config.configWithdraw.btc.min);
+        const maxAmount = parseFloat(config.configWithdraw.btc.max);
 
-            const response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
+        // Validate amount against min/max and fee requirements
+        const netAmount = amount - fee;
+        if (amount < minAmount || amount > maxAmount) {
+            return {
+                error: `Amount must be between ${minAmount} and ${maxAmount} BTC.`,
+            };
+        }
+
+
+        // Fetch account balance
+        const balanceResponse = await TatumAxios.get(`/ledger/account/${accountInfo.dataObject.virtualAccount.id}/balance`);
+        const currentBalance = parseFloat(balanceResponse.data.availableBalance);
+
+        if (currentBalance < amount + fee) {
+            return {
+                error: `Insufficient balance. Available: ${currentBalance} BTC, Required: ${(amount + fee).toFixed(8)} BTC.`,
+            };
+        }
+
+        const request = {
+            senderAccountId: accountInfo.dataObject.virtualAccount.id,
+            address,
+            amount: amount.toFixed(8),
+            mnemonic: accountInfo.dataObject.mnemonic,
+            xpub: accountInfo.dataObject.xpub,
+            fee: fee.toFixed(8),
+        };
+
+        let response;
+        try {
+            response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
             console.log("\nresponse = ", JSON.stringify(response));
+        } catch (e) {
+            console.error(
+                "\nError during BTC transfer request: ",
+                JSON.stringify(e.response ? e.response.data : e)
+            );
+            return {
+                error: e.response ? e.response.data.cause : e.message,
+            };
+        }
 
+        if (response.data && response.data.completed) {
+            await new models.transactionModel({
+                accountId: accountInfo.dataObject.virtualAccount.id,
+                amount: Number(amount),
+                reference: '',
+                currency,
+                txId: response.data.txId,
+                from: myAddress,
+                to: address,
+                date: new Date(),
+                index: '',
+                subscriptionType: '#',
+            }).save();
 
-
-            if (response.data.completed) {
-                await new models.transactionModel({
-                    accountId: accountInfo.dataObject.virtualAccount.id,
-                    amount: Number(amount),
-                    reference: '',
-                    currency: currency,
-                    txId: response.data.txId,
-                    from: myAddress,
-                    to: address,
-                    date: new Date(),
-                    index: '',
-                    subscriptionType: '#'
-                }).save();
-            }
             return response.data;
+        } else {
+            return { error: 'Transaction could not be completed.' };
         }
-        else {
-            console.log({ title: 'tatumController - withdrawBTCFromAccount', message: 'AccountInfo Null' });
-            return null;
-        }
-    }
-    catch (err) {
+    } catch (err) {
         console.error({ title: 'tatumController - withdrawBTCFromAccount', message: err.message });
-        return null;
+        return { error: err.message };
     }
-}
+};
+
+
 
 exports.createEthereumWallet = async () => {
     try {
@@ -237,7 +345,9 @@ exports.withdrawETHFromAccount = async (data) => {
                 address: address,
                 amount: Number(amount).toString(),
                 index: derivationKey,
-                mnemonic: accountInfo.dataObject.mnemonic
+                mnemonic: accountInfo.dataObject.mnemonic,
+                fee: config.configWithdraw.eth.fee.toString()
+
             }
             const response = await TatumAxios.post(`/offchain/ethereum/transfer`, JSON.stringify(request));
             if (response.data.completed) {
@@ -290,7 +400,8 @@ exports.withdrawTRONFromAccount = async (data) => {
                 address: address,
                 amount: Number(amount).toString(),
                 mnemonic: accountInfo.dataObject.mnemonic,
-                index: derivationKey
+                index: derivationKey,
+                fee: config.configWithdraw.trx.fee.toString()
             }
             const response = await TatumAxios.post(`/offchain/tron/transfer`, JSON.stringify(request));
             if (response.data.completed) {
