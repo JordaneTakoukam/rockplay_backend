@@ -442,3 +442,52 @@ exports.createBSCWallet = async () => {
         return null;
     }
 }
+
+// new add'
+
+// exports.withdrawBNBFromAccount = async (data) => {
+//     try {
+//         const { address, amount, derivationKey, myAddress, currency } = data;
+//         const keyName = `BNBWalletInfo`;  // Nom de la clé pour les informations sur le portefeuille BNB
+//         const accountInfo = await models.settingModel.findOne({ key: keyName });
+
+//         if (accountInfo) {
+//             // Construction de la requête pour la transaction
+//             const request = {
+//                 senderAccountId: accountInfo.dataObject.virtualAccount.id,
+//                 address: address,
+//                 amount: Number(amount).toString(),
+//                 index: derivationKey,
+//                 mnemonic: accountInfo.dataObject.mnemonic,
+//                 fee: config.configWithdraw.bnb.fee.toString()  // Utilisation des frais de BNB dans la configuration
+//             };
+
+//             // Envoi de la requête à l'API Tatum pour effectuer le retrait BNB
+//             const response = await TatumAxios.post(`/offchain/bnb/transfer`, JSON.stringify(request));
+
+//             if (response.data.completed) {
+//                 // Sauvegarde de la transaction dans la base de données
+//                 await new models.transactionModel({
+//                     accountId: accountInfo.dataObject.virtualAccount.id,
+//                     amount: Number(amount),
+//                     reference: '',
+//                     currency: currency,
+//                     txId: response.data.txId,
+//                     from: myAddress,
+//                     to: address,
+//                     date: new Date(),
+//                     index: '',
+//                     subscriptionType: '#'
+//                 }).save();
+//             }
+
+//             return response.data;
+//         } else {
+//             console.log({ title: 'tatumController - withdrawBNBFromAccount', message: 'AccountInfo Null' });
+//             return null;
+//         }
+//     } catch (err) {
+//         console.error({ title: 'tatumController - withdrawBNBFromAccount', message: err.message });
+//         return null;
+//     }
+// };

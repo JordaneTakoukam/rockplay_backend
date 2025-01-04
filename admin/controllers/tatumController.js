@@ -50,12 +50,12 @@ exports.withdrawBTCFromAccount = async (data) => {
     try {
         const { address, amount, myAddress, currency } = data;
 
-        console.log("\ndata = ", JSON.stringify(data));
+        // console.log("\ndata = ", JSON.stringify(data));
 
         const keyName = `BTCWalletInfo`;
         const accountInfo = await models.settingModel.findOne({ key: keyName });
 
-        console.log("\naccountInfo = ", JSON.stringify(accountInfo));
+        // console.log("\naccountInfo = ", JSON.stringify(accountInfo));
 
         if (accountInfo) {
             const request = {
@@ -66,9 +66,9 @@ exports.withdrawBTCFromAccount = async (data) => {
                 xpub: accountInfo.dataObject.xpub,
             }
 
-            console.log("\nrequest = ", JSON.stringify(request));
+            // console.log("\nrequest = ", JSON.stringify(request));
 
-            const response = await TatumAxios.post(`/offchain/bitcoin/withdrawal`, JSON.stringify(request));
+            const response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
 
             console.log("\nresponse = ", JSON.stringify(response));
 

@@ -196,31 +196,33 @@ exports.getWalletDetail = async (req, res) => {
 }
 
 exports.withdrawFromAddress = async (req, res) => {
-    try {
-        console.log("ici");
+    // console.log("ici =======> withdrawFromAddress");
 
-        const { from, to, amount, fee, coinType } = req.body;
-        if (!from || !to || !amount || !fee || !coinType)
-            return res.json({ status: false, message: 'Invalid Request' });
+    // try {
 
-        const walletData = await models.walletModel.findOne({ address: from, currency: coinType });
-        if (coinType === 'TRX') {
-            const response = await tatumController.withdrawTRONFromAccount({ address: to, amount, derivationKey: walletData.derivationKey, myAddress: from, currency: coinType });
-            return res.json({ status: true, data: response });
-        }
-        else if (coinType === 'ETH') {
-            const response = await tatumController.withdrawETHFromAccount({ address: to, amount, derivationKey: walletData.derivationKey, myAddress: from, currency: coinType });
-            return res.json({ status: true, data: response });
-        }
-        else if (coinType === 'BTC') {
-            const response = await tatumController.withdrawBTCFromAccount({ address: to, amount, myAddress: from, currency: coinType });
-            return res.json({ status: true, data: response });
-        }
-    }
-    catch (err) {
-        console.error({ title: 'walletController => withdrawFromAddress', message: err.message });
-        return res.json({ status: false, message: 'Server Error' });
-    }
+    //     const { from, to, amount, fee, coinType } = req.body;
+    //     if (!from || !to || !amount || !fee || !coinType)
+    //         return res.json({ status: false, message: 'Invalid Request' });
+
+    //     const walletData = await models.walletModel.findOne({ address: from, currency: coinType });
+    //     if (coinType === 'TRX') {
+    //         const response = await tatumController.withdrawTRONFromAccount({ address: to, amount, derivationKey: walletData.derivationKey, myAddress: from, currency: coinType });
+    //         return res.json({ status: true, data: response });
+    //     }
+    //     else if (coinType === 'ETH') {
+    //         const response = await tatumController.withdrawETHFromAccount({ address: to, amount, derivationKey: walletData.derivationKey, myAddress: from, currency: coinType });
+    //         return res.json({ status: true, data: response });
+    //     }
+    //     else if (coinType === 'BTC') {
+    //         const response = await tatumController.withdrawBTCFromAccount({ address: to, amount, myAddress: from, currency: coinType });
+    //         return res.json({ status: true, data: response });
+    //     }
+    // }
+    // catch (err) {
+    //     console.error({ title: 'walletController => withdrawFromAddress', message: err.message });
+    //     return res.json({ status: false, message: 'Server Error' });
+    // }
+    return null;
 }
 
 exports.getSeedData = async (req, res) => {

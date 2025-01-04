@@ -4,21 +4,22 @@ const DEV_MODE = process.env.REACT_APP_MODE === 'dev';
 
 const configWithdraw = {
     btc: {
-        fee: 0.00001,
-        min: 0.0001, // ~ 10$
-        max: 0.0001  // ~ 100$
+        fee: 0.00005, // ~ 4.82$
+        min: 0.0001, // ~ 48.24$
+        max: 0.05  // ~ 4,823.59$
     },
     eth: {
-        fee: 0.00014,  // ~ 0.5$
-        min: 0.0029, // ~ 10$
-        max: 0.029 // ~ 100$
+        fee: 0.003,  // ~ 10.31$
+        min: 0.03, // ~ 103.10$
+        max: 1.5 // ~ 5,154.87$
     },
     trx: {
         fee: 1.89,  // ~ 0.5$
         min: 37.79, // ~ 10$
-        max: 377.9 // ~ 100$
+        max: 20000 // ~ 5258,05
     },
 };
+
 
 module.exports = {
     SERVER_PORT: 5000,

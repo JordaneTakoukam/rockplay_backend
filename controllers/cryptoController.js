@@ -82,7 +82,11 @@ exports.getBalanceFromAccount = async (req, res) => {
 exports.withdrawFromAccount = async (req, res) => {
     try {
 
+        console.log("ici");
+
         const { coinType } = req.body;
+
+        console.log("coinType = ", coinType);
 
         if (coinType === 'BTC')
             this.withdrawBTCFromAccount(req, res);
@@ -219,8 +223,6 @@ exports.tatumWebhook = async (req, res) => {
 
         let txData = await models.transactionModel.findOne({ txId });
         if (!txData) {
-            console.log('\nNew Tatum Webhook ===>');
-            console.log('New Tatum Webhook data = ' + req.body);
             const transaction = await new models.transactionModel({ txId, amount, from: counterAddress, to: address, date: new Date(), blockNumber, subscriptionType, currency }).save();
             console.log("\nTransactions = " + transaction);
 
