@@ -50,7 +50,7 @@ exports.getDepositAdress = async (req, res) => {
         }
     }
     catch (err) {
-        console.error({ title: 'blockbee controller - getDepositAddressFromAccount', message: err.message });
+        console.error({ title: 'blockbee controller - getDepositAddress', message: err });
         return res.json({ status: false, data: null, message: 'Server Error' });
     }
 }

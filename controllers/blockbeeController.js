@@ -35,7 +35,7 @@ exports.getDepositAddress = async (data) => {
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY,
-            callback: `${process.env.WEBHOOK_URL}/deposit?user_id=${userId}`,
+            callback: `${process.env.BLOCKBEE_WEBHOOK}/deposit?user_id=${userId}`,
         };
 
         const response = await BlockbeeAxios.get(`${ticker}/create`, { params: query });
@@ -48,6 +48,8 @@ exports.getDepositAddress = async (data) => {
             throw new Error(`BlockBee API Error: ${response.data.error}`);
         }
     } catch (error) {
+
+        console.error(`Error : ${error}`);
         console.error('Error generating deposit address:', error.message);
         // Optionally log the full error object or response for further debugging
         if (error.response) {
