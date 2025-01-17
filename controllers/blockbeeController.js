@@ -35,7 +35,7 @@ exports.getDepositAddress = async (data) => {
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY,
-            callback: `${process.env.WEBHOOK_URL}/webhook/deposit?user_id=${userId}`,
+            callback: `${process.env.WEBHOOK_URL}/deposit?user_id=${userId}`,
         };
 
         const response = await BlockbeeAxios.get(`${ticker}/create`, { params: query });
