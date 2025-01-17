@@ -26,10 +26,10 @@ const models = require('./models/index');
 models.mongoose.connect(config.DB)
     .then(() => {
         console.log('server connected to mongodb successfully');
-        initController.initTatumBTC();
-        initController.initTatumETH();
-        initController.initTatumTRX();
-        initController.initTatumBSC();
+        // initController.initTatumBTC();
+        // initController.initTatumETH();
+        // initController.initTatumTRX();
+        // initController.initTatumBSC();
     })
     .catch((err) => {
         console.error({ title: 'mongodb connection error', message: err.message });

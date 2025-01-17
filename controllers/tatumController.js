@@ -16,26 +16,40 @@ const NativeData = {
     'trc-20': 'TRX'
 };
 
-const createSubscription = async (data, subscriptionType = Tatum.SubscriptionType.ADDRESS_TRANSACTION) => {
-    try {
 
-        const { address, chain, url } = data;
-        const request = {
-            type: subscriptionType,
-            attr: {
-                address,
-                chain,
-                url
+const createSubscription = async (data, subscriptionType = Tatum.SubscriptionType.ADDRESS_TRANSACTION) => {
+    const MAX_RETRIES = 5; // Nombre maximum de tentatives
+    let attempt = 0; // Compteur des tentatives
+
+    while (attempt < MAX_RETRIES) {
+        try {
+            const { address, chain, url } = data;
+            const request = {
+                type: subscriptionType,
+                attr: {
+                    address,
+                    chain,
+                    url
+                }
+            };
+
+            const response = await TatumAxios.post('/subscription', JSON.stringify(request));
+            return response.data; // Retourner la réponse si la requête réussit
+        } catch (err) {
+            attempt++;
+            console.error(`Tentative ${attempt} SUBSCRIPTION échouée:`, err.message);
+
+            if (attempt >= MAX_RETRIES) {
+                console.error({ title: 'tatumController - createSubscription', message: 'Nombre maximum de tentatives atteint', error: err.message });
+                return null; // Retourner null après avoir atteint le nombre maximum de tentatives
             }
-        };
-        const response = await TatumAxios.post('/subscription', JSON.stringify(request));
-        console.log("reponse = ", response.data);
+
+            // Attendre 1 seconde avant la prochaine tentative
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
     }
-    catch (err) {
-        console.error({ title: 'tatumController - createSubscription', message: err.message });
-        return null;
-    }
-}
+};
+
 
 const getNetworkFromCoinType = (coinType) => {
     if (coinType.toUpperCase() === 'BTC') return 'bitcoin';
@@ -114,29 +128,50 @@ exports.getBalanceFromAccount = async (data) => {
 }
 
 exports.getDepositAddressFromAccount = async (data) => {
+
+    const { coinType } = data;
+
     try {
-        const { coinType } = data;
+
         const keyName = `${coinType === 'TRX' ? 'TRON' : coinType === 'BNB' ? 'BSC' : coinType}WalletInfo`;
         const accountInfo = await models.settingModel.findOne({ key: keyName });
         if (accountInfo) {
             const chain = getNetworkFromCoinType(coinType);
-            const addressData = await TatumAxios.post(`/offchain/account/${accountInfo.dataObject.virtualAccount.id}/address`);
+
+            const MAX_RETRIES = 5;
+            let attempt = 0;
+            let addressData;
+
+            while (attempt < MAX_RETRIES) {
+                try {
+                    addressData = await TatumAxios.post(`/offchain/account/${accountInfo.dataObject.virtualAccount.id}/address`);
+                    break; // Sortir de la boucle si la requête réussit
+                } catch (err) {
+                    attempt++;
+                    if (attempt >= MAX_RETRIES) {
+                        console.error('Nombre maximum de tentatives atteint pour obtenir l\'adresse', err.message);
+                        throw err;
+                    }
+                    console.log(`Tentative ${attempt} échouée, nouvelle tentative dans 5 secondes...`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+            }
+
             const privateKey = await generatePrivateKey({ index: addressData.data.derivationKey, chain, mnemonic: accountInfo.dataObject.mnemonic });
 
             // creer une souscription pour update le solde en cas de transaction depot ou retrait
             await createSubscription({ url: config.SUBSCRIBE_URL, chain: addressData.data.currency, address: addressData.data.address });
             return { ...addressData.data, ...privateKey };
-        }
-        else {
+        } else {
             console.log({ title: 'tatumController - getDepositAddressFromAccount', message: 'AccountInfo Null' });
             return null;
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.error({ title: 'tatumController - getDepositAddressFromAccount', message: err.message });
         return null;
     }
-}
+};
+
 
 exports.getGasPrice = async (data) => {
     try {

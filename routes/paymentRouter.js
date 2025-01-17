@@ -12,6 +12,14 @@ Router.post('/btc-withdraw', cryptoController.withdrawBTCFromAccount);
 Router.post('/eth-withdraw', cryptoController.withdrawETHFromAccount);
 Router.post('/tron-withdraw', cryptoController.withdrawTRONFromAccount);
 
+
+
+// new add blockbee
+// Router.post('/blockbee/webhook-handler', cryptoControllerBlockbee.blockbeeWebhook);
+// Router.post('/blockbee/deposit-address', cryptoControllerBlockbee.generateDepositAddress);
+// Router.post('/blockbee/withdraw', cryptoControllerBlockbee.processWithdrawal);
+
+
 Router.post('/get-daily-reward', cryptoController.getDailyReward);
 Router.post('/getCurrencies', cryptoController.getCurrencies);
 Router.post('/getExchangeRate', cryptoController.getExchangeRate);

@@ -238,8 +238,11 @@ exports.tatumWebhook = async (req, res) => {
                 console.log("New Balance  = " + userData.balance);
 
             }
+            res.json({ "success": true })
         } else {
             console.log(' Tatum Webhook Already exist ===>');
+
+            res.json({ "success": false })
 
         }
     }
