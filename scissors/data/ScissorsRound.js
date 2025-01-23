@@ -19,13 +19,13 @@ exports.getScissorsResult = async (data, socket) => {
         // const dealerNumber = scissorsWinner(seedData.serverSeedData.seed, seedData.clientSeedData.seed, roundNumber);
 
         // const result = checkWinner(playerNumber, dealerNumber);
-        const resulPrediction = checkWinnerControl(playerNumber, betAmount, coinType.coinType);
+        const resulPrediction = checkWinnerInfluence(playerNumber, betAmount, coinType.coinType);
 
         var dealerNumber = resulPrediction.dealerNumber;
 
         // console.log("player = ", playerNumber);
         // console.log("dealer = ", dealerNumber);
-        
+
         const response = await scissorsController.saveScissorsRound({ userId, betAmount, playerNumber: playerNumber, dealerNumber: dealerNumber, result: resulPrediction.result, coinType, roundNumber, clientSeed: seedData.clientSeedData.seed, serverSeed: seedData.serverSeedData.seed });
 
         socketManager.sendBetResult({ playerNumber: playerNumber, dealerNumber, winResult: result = resulPrediction.result, result: response }, socket);
@@ -93,7 +93,7 @@ exports.getHistory = async (data, socket) => {
 //     };
 // }
 
-const checkWinnerControl = (player, betAmount, coinType) => {
+const checkWinnerInfluence = (player, betAmount, coinType) => {
     // Calculer la chance de gagner en pourcentage (exemple : 0.1 = 10%)
     const winChance = calculateWinChance(betAmount, coinType);
 
@@ -112,7 +112,7 @@ const checkWinnerControl = (player, betAmount, coinType) => {
     let dealerNumber;
 
     // Déterminer si le joueur gagne ou perd selon winChance
-    if (numberPick <= winChance) {
+    if ((winChance == 1) || (numberPick <= winChance)) {
         // Le joueur gagne
         result = 'win';
         dealerNumber = parseInt(Object.keys(gameResults[player]).find(

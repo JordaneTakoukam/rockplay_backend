@@ -38,7 +38,7 @@ exports.getDepositAdress = async (req, res) => {
                 //         userId: userId,
                 //         privateKey: response.key
                 //     }).save();
-                return res.json({ status: true, data: response });
+                return res.json({ status: true, data: response.data });
                 // }
                 // else {
                 //     return res.json({ status: false, data: response, message: 'API Error' });

@@ -35,18 +35,19 @@ exports.getDepositAddress = async (data) => {
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY,
-            callback: `${process.env.BLOCKBEE_WEBHOOK}/deposit?user_id=${userId}`,
+            callback: `https://api-root.minusplay.com/api/v0/blockbee/payment/webhook/deposit?user_id=${userId}`,
         };
 
         const response = await BlockbeeAxios.get(`${ticker}/create`, { params: query });
 
         console.log(`Response from BlockBee: ${JSON.stringify(response.data)}`);
 
-        if (response.data.status === 'success') {
-            return response.data;
-        } else {
-            throw new Error(`BlockBee API Error: ${response.data.error}`);
-        }
+        // if (response.data.status === 'success') {
+        //     return response.data;
+        // } else {
+        //     throw new Error(`BlockBee API Error: ${response.data.error}`);
+        // }
+        return { "reponse": "okay", }
     } catch (error) {
 
         console.error(`Error : ${error}`);

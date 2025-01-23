@@ -4,6 +4,7 @@ const { randomNumber, generateTurtleHash } = require('../../helper/mainHelper');
 const socketManager = require('../manager/SocketManager');
 const dataManager = require('../manager/DataManager');
 const turtleController = require('../controllers/TurtleController');
+const { calculateWinChance } = require('../../betUtils/betUtils');
 
 TURTLE_YELLOW = 0;
 TURTLE_RED = 1;
@@ -85,8 +86,11 @@ module.exports = class TurtleRaceRound {
             betAmount += betUser.betAmount
         });
 
+
+
         const hash = generateTurtleHash(this.serverSeed, this.roundNumber, betAmount);
         const value = parseInt(hash[0], 16);
+
         let winTurtle;
         if (value <= 5)
             winTurtle = 0;
@@ -105,8 +109,122 @@ module.exports = class TurtleRaceRound {
         let topIndex = resultTurtle.findIndex((item) => item === 0);
         resultTurtle[topIndex] = resultTurtle[winTurtle];
         resultTurtle[winTurtle] = 0;
+
+        console.log("result return = ", resultTurtle);
+
         return resultTurtle;
     }
+
+
+
+
+    winnerLogicInfluence() {
+        let betAmount = 0;
+
+        // Calculer le montant total des mises (si des utilisateurs jouent)
+        if (this.betUsers.length > 0) {
+            this.betUsers.forEach((betUser) => {
+                betAmount += parseFloat(betUser.betAmount);
+            });
+        }
+
+        // Générer un hash basé sur les seeds et le montant total des mises
+        const hash = generateTurtleHash(this.serverSeed, this.roundNumber, betAmount);
+        const value = parseInt(hash[0], 16);
+
+        // Tortue gagnante initialement déterminée par le hash
+        let winTurtle;
+        if (value <= 5) {
+            winTurtle = 0;
+        } else if (value > 5 && value <= 10) {
+            winTurtle = 1;
+        } else {
+            winTurtle = 2;
+        }
+        console.log("Initial winner turtle based on hash:", winTurtle);
+
+        // Si aucun utilisateur ne participe, retourner simplement le résultat basé sur le hash
+        if (this.betUsers.length === 0) {
+            console.log("No users played in this round. Returning default winner logic.");
+            return this.generateResultTurtle(winTurtle);
+        }
+
+        // Résultat final
+        let resultTurtle = [];
+
+        // Traiter chaque utilisateur
+        this.betUsers.forEach((betUser) => {
+            const coinType = betUser.coinType?.coinType || 'undefined';
+            const winChance = calculateWinChance(betUser.betAmount, coinType);
+            const playNumber = betUser.turtleNum;
+
+            console.log("coinType = ", coinType);
+            console.log("playNumber = ", playNumber);
+            console.log("win chance = ", winChance);
+
+            // Si winChance est de 100%, placer automatiquement la tortue de l'utilisateur en première position
+            if (winChance === 1) {
+                console.log(`User ${betUser.userId} has a 100% win chance. Automatically placing turtle ${playNumber} in first position.`);
+                resultTurtle = [playNumber];
+                winTurtle = playNumber; // Mettre à jour winTurtle pour ce cas
+                return; // Arrêter le traitement pour cet utilisateur
+            }
+
+            // Générer un nombre aléatoire pour influencer le résultat
+            const randomPick = Math.random();
+            console.log(`User ${betUser.userId} | winChance: ${winChance} | randomPick: ${randomPick}`);
+
+            if (randomPick <= winChance) {
+                // Si l'utilisateur gagne, sa tortue est placée en première position
+                console.log(`User ${betUser.userId} wins and places turtle ${playNumber} in first position.`);
+                resultTurtle = [playNumber]; // Placer la tortue gagnante en tête
+                winTurtle = playNumber; // Mettre à jour winTurtle
+            }
+        });
+
+        // Compléter le tableau avec les tortues restantes
+        const allTurtles = [0, 1, 2];
+        const remainingTurtles = allTurtles.filter((turtle) => !resultTurtle.includes(turtle));
+        resultTurtle = [...resultTurtle, ...remainingTurtles];
+
+        console.log("Final turtle positions:", resultTurtle);
+
+        // Retourner le résultat final
+        return resultTurtle;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    // Fonction utilitaire pour générer l'ordre des tortues
+    generateResultTurtle(winTurtle) {
+        let resultTurtle = [];
+
+        // Générer une liste aléatoire des tortues
+        while (resultTurtle.length < constant.turtleraceInfo.turtleCount) {
+            let number = randomNumber(constant.turtleraceInfo.turtleCount);
+            if (!resultTurtle.includes(number)) resultTurtle.push(number);
+        }
+
+        // Mettre la tortue gagnante en première position
+        let topIndex = resultTurtle.findIndex((item) => item === winTurtle);
+        [resultTurtle[0], resultTurtle[topIndex]] = [resultTurtle[topIndex], resultTurtle[0]];
+
+        console.log("Final turtle positions:", resultTurtle);
+        return resultTurtle;
+    }
+
+
+
+
 
     async addBetUser(data, socket) {
         if (this.roundState === constant.round.state.countDown) {
@@ -165,17 +283,52 @@ module.exports = class TurtleRaceRound {
 
     startRound() {
         let self = this;
-        this.winnerInfo = this.winnerLogic();
+        this.winnerInfo = this.winnerLogicInfluence();
         socketManager.sendRoundStart(this.winnerInfo);
         this.roundStartTime = new Date();
 
-        let topWinner = this.winnerInfo.findIndex((info) => info === 0);
+
+
+        // influence configurer ici --------------
         this.betUsers.map((betUser) => {
-            if (betUser.turtleNum === topWinner) {
+            console.log("betUser = ", JSON.stringify(betUser));
+
+            // Montant parié par l'utilisateur
+            const betAmount = parseFloat(betUser.betAmount);
+            const coinType = betUser.coinType?.coinType || 'undefined';
+
+            // Calcul de la probabilité de gagner
+
+            // Numéro choisi par l'utilisateur
+            const playNumber = betUser.turtleNum;
+
+            // Numéro gagnant (déterminé par winnerInfo)
+            let topWinner = this.winnerInfo[0];
+
+            // console.log("coinType = ", coinType);
+            // console.log("playNumber = ", playNumber);
+            // console.log("win chance = ", winChance);
+            // console.log("winner number = ", topWinner);
+
+            // Générer un nombre aléatoire entre 0 et 1 pour simuler la probabilité
+            // const randomPick = Math.random();
+            // console.log(`Random pick for winChance: ${randomPick}`);
+
+            // Déterminer si l'utilisateur gagne ou non
+            if (topWinner === playNumber) {
+                // Utilisateur gagne (winChance = 1 garantit la victoire)
                 betUser.isWin = true;
-                betUser.profit = betUser.betAmount * betUser.xFactor;
+                betUser.profit = betAmount * betUser.xFactor; // Calcul du profit
+                console.log(`User ${betUser.userId} won! Profit: ${betUser.profit}`);
+            } else {
+                // Utilisateur perd
+                betUser.isWin = false;
+                betUser.profit = 0;
+                console.log(`User ${betUser.userId} lost.`);
             }
         });
+
+
 
         setTimeout(() => {
             turtleController.saveTurtleRound({ roundNumber: this.roundNumber, winnerInfo: this.winnerInfo, roundDate: this.roundDate, betUsers: this.betUsers, serverSeed: this.serverSeed })
@@ -218,3 +371,9 @@ module.exports = class TurtleRaceRound {
         }, constant.turtleraceInfo.runRound.time * 1000);
     }
 }
+
+
+
+
+
+
