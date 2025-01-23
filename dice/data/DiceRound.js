@@ -4,10 +4,10 @@ const diceController = require('../controller/DiceController');
 const { v4: uuidv4 } = require('uuid');
 
 const ChanceData = [
-    { over: 3, under: 11, payout: 1.03, percent: [20, 40, 60, 80, 100, 120] },
-    { over: 4, under: 10, payout: 1.14, percent: [20, 40, 60, 80, 100, 120] },
-    { over: 5, under: 9, payout: 1.31, percent: [20, 40, 60, 80, 100, 120] },
-    { over: 6, under: 8, payout: 1.62, percent: [15, 30, 60, 90, 105, 120] },
+    // { over: 3, under: 11, payout: 1.03, percent: [20, 40, 60, 80, 100, 120] },
+    // { over: 4, under: 10, payout: 1.14, percent: [20, 40, 60, 80, 100, 120] },
+    // { over: 5, under: 9, payout: 1.31, percent: [20, 40, 60, 80, 100, 120] },
+    // { over: 6, under: 8, payout: 1.62, percent: [15, 30, 60, 90, 105, 120] },
     { over: 7, under: 7, payout: 2.28, percent: [15, 30, 60, 90, 105, 120] },
     { over: 8, under: 6, payout: 3.42, percent: [15, 30, 60, 90, 105, 120] },
     { over: 9, under: 5, payout: 5.70, percent: [10, 30, 60, 90, 110, 120] },
