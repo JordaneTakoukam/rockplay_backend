@@ -7,12 +7,15 @@ const { v4: uuidv4 } = require('uuid');
 
 
 // generer une adresse de depot 
-exports.getDepositAdress = async (req, res) => {
+exports.getClientDepositBlockbeeAddress = async (req, res) => {
     try {
         let { coinType, type, userId } = req.body;
         // if (type !== 'native') {
         //     coinType = await tatumController.getNativeData({ type });
         // }
+
+        console.log(`req body = ${req.body}`);
+
 
         if (coinType) {
 

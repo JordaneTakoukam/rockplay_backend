@@ -35,7 +35,8 @@ exports.getDepositBlockbeeAddress = async (data) => {
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY,
-            callback: `https://api-root.minusplay.com/api/v0/blockbee/payment/webhook/deposit?user_id=${userId}`,
+            callback: `https://api-root.minusplay.com/api/v0/payment/webhook/deposit?user_id=${userId}`,
+            post: "1"  // pourque la callback soit un post
         };
 
         const response = await BlockbeeAxios.get(`${ticker}/create`, { params: query });

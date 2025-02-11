@@ -1,12 +1,22 @@
 const routerx = require('express-promise-router');
 const cryptoController = require('../controllers/cryptoController');
+const cryptoBlockbeeController = require('../controllers/blockbee/cryptoControllerBlockbee');
 
 const Router = routerx();
 
-Router.post('/webhook-handler', cryptoController.tatumWebhook);
-Router.post('/deposit-address', cryptoController.getDepositAddressFromAccount);
-Router.post('/get-balance', cryptoController.getBalanceFromAccount);
 
+Router.post('/deposit-blockbee-address', cryptoBlockbeeController.getClientDepositBlockbeeAddress);
+Router.post('/webhook/deposit', cryptoBlockbeeController.webHookDeposit);
+
+
+
+// Router.post('/deposit-address', cryptoController.getDepositAddressFromAccount);
+// Router.post('/webhook-handler', cryptoController.tatumWebhook);
+
+
+
+
+Router.post('/get-balance', cryptoController.getBalanceFromAccount);
 Router.post('/withdraw', cryptoController.withdrawFromAccount);
 Router.post('/btc-withdraw', cryptoController.withdrawBTCFromAccount);
 Router.post('/eth-withdraw', cryptoController.withdrawETHFromAccount);
