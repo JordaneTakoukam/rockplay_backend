@@ -1,6 +1,6 @@
 const Axios = require('axios');
-const config = require('../config');
-const models = require('../models/index');
+const config = require('../../config');
+const models = require('../../models/index');
 require('dotenv').config();
 
 const BlockbeeAxios = Axios.create();
@@ -15,7 +15,7 @@ BlockbeeAxios.defaults.headers.post['Content-Type'] = 'application/json';
 // 
 // 
 //  Service to generate a deposit address
-exports.getDepositAddress = async (data) => {
+exports.getDepositBlockbeeAddress = async (data) => {
     const { coinType, userId } = data;
 
     let ticker;
@@ -42,12 +42,11 @@ exports.getDepositAddress = async (data) => {
 
         console.log(`Response from BlockBee: ${JSON.stringify(response.data)}`);
 
-        // if (response.data.status === 'success') {
-        //     return response.data;
-        // } else {
-        //     throw new Error(`BlockBee API Error: ${response.data.error}`);
-        // }
-        return { "reponse": "okay", }
+        if (response.data.status === 'success') {
+            return response.data;
+        } else {
+            throw new Error(`BlockBee API Error: ${response.data.error}`);
+        }
     } catch (error) {
 
         console.error(`Error : ${error}`);
