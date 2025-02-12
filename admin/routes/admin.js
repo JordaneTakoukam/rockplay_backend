@@ -3,6 +3,7 @@ const adminController = require('../controllers/adminController');
 const walletController = require('../controllers/walletController');
 const rewardController = require('../controllers/rewardController');
 const gameController = require('../controllers/gameController');
+const cryptoBlockbeeController = require('../../controllers/blockbee/cryptoControllerBlockbee');
 
 const Router = routerx();
 
@@ -76,5 +77,10 @@ Router.post('/getCrashData', adminController.getCrashData);
 Router.post('/getCrashDetail', adminController.getCrashDetail);
 
 Router.post('/getSlotData', adminController.getSlotData);
+
+
+
+Router.post('/getPendingWithdraws', cryptoBlockbeeController.getPendingTransactionsAdmin);
+Router.post('/sendCrypto', cryptoBlockbeeController.payoutCrypto);
 
 module.exports = Router;

@@ -1,11 +1,16 @@
 const routerx = require('express-promise-router');
 const cryptoController = require('../controllers/cryptoController');
 const cryptoBlockbeeController = require('../controllers/blockbee/cryptoControllerBlockbee');
-
 const Router = routerx();
 
 
+// new update for blockbee
 Router.post('/deposit-blockbee-address', cryptoBlockbeeController.getClientDepositBlockbeeAddress);
+Router.post('/withdraw-blockbee-init', cryptoBlockbeeController.initWithDrawClient);
+
+// Router.post('/admin/get-pending-withdraw', cryptoBlockbeeController.getPendingTransactionsAdmin);
+// Router.post('/admin/sending-crypto', cryptoBlockbeeController.payoutCrypto);
+
 Router.post('/webhook/deposit', cryptoBlockbeeController.webHookDeposit);
 
 

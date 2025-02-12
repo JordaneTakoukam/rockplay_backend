@@ -9,6 +9,9 @@ const TurtleManagement = Loadable(lazy(() => import('views/turtleManagement')));
 const TurtleDetail = Loadable(lazy(() => import('views/turtleManagement/detail')));
 const WalletManagement = Loadable(lazy(() => import('views/walletManagement')));
 const WalletDetail = Loadable(lazy(() => import('views/walletManagement/detail')));
+const PendingPayments = Loadable(lazy(() => import('views/pending-payments')));
+
+
 const ScissorsManagement = Loadable(lazy(() => import('views/scissorsManagement')));
 const ChangePassword = Loadable(lazy(() => import('views/auth/changePassword')));
 const FairManagement = Loadable(lazy(() => import('views/fairManagement')));
@@ -123,12 +126,16 @@ const MainRoutes = {
                     element: <CurrencyManagement />
                 },
                 {
+                    path: '/currencies',
+                    element: <CurrencyManagement />
+                },
+                {
                     path: '/wallet-management',
                     element: <WalletManagement />
                 },
                 {
-                    path: '/wallet-detail',
-                    element: <WalletDetail />
+                    path: '/pending-payments',
+                    element: <PendingPayments />
                 },
             ]
         },

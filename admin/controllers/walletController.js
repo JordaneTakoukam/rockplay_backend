@@ -53,6 +53,7 @@ exports.getWalletList = async (req, res) => {
             balanceData['BTC'] = await tatumController.getBalanceFromAccount({ coinType: 'BTC' });
             balanceData['ETH'] = await tatumController.getBalanceFromAccount({ coinType: 'ETH' });
             balanceData['TRX'] = await tatumController.getBalanceFromAccount({ coinType: 'TRON' });
+            balanceData['BNB'] = await tatumController.getBalanceFromAccount({ coinType: 'BNB' });
         }
         else {
             balanceData[coinType] = await tatumController.getBalanceFromAccount({ coinType: coinType === 'TRX' ? 'TRON' : coinType });

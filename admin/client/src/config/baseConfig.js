@@ -68,7 +68,11 @@ const Config = {
         deleteTournament: '/deleteTournament',
         getCrashData: '/getCrashData',
         getCrashDetail: '/getCrashDetail',
-        getSlotData: '/getSlotData'
+        getSlotData: '/getSlotData',
+
+
+        getPendingWithdraws: '/getPendingWithdraws',
+        sendCrypto: '/sendCrypto'
     }
 };
 
