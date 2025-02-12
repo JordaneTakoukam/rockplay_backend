@@ -4,143 +4,86 @@ const blockbeeControler = require('./blockbeeController');
 const Axios = require('axios');
 const SocketManager = require('../../socket/Manager');
 const { v4: uuidv4 } = require('uuid');
+const { sendMsg } = require('../../helper/emailHelper');
+const { templateSendTransaction } = require('../../helper/template_send_transaction');
+const { configWithdraw } = require('../../config');
+const { templateSuccessCreateAddress } = require('../../helper/template_new_address_create');
 
 
 // generer une adresse de depot 
 exports.getClientDepositBlockbeeAddress = async (req, res) => {
     try {
-        let { coinType, type, userId } = req.body;
-        // if (type !== 'native') {
-        //     coinType = await tatumController.getNativeData({ type });
-        // }
-
-        console.log(`req body = ${req.body}`);
-
-
-        if (coinType) {
-
-            let walletData = await models.walletModel.findOne({ userId, currency: coinType });
-            if (walletData) {
-                console.log("Le wallet existe deja");
-
-                return res.json({ status: true, data: walletData });
-            }
-            else {
-                console.log("Le wallet n'existe pas encore");
-
-                let response = await blockbeeControler.getDepositBlockbeeAddress({ coinType, userId });
-
-                if (response !== null) {
-                    let data = await new models.walletModel({
-                        // address: response.address,
-                        address: response.address_in,
-                        address_out: response.address_out,
-                        minimum_transaction_coin: response.minimum_transaction_coin,
-
-                        xpub: "",
-                        derivationKey: "",
-                        currency: coinType,
-                        userId: userId,
-                        privateKey: "",
-                    }).save();
-                    // return res.json({ status: true, data: response.data });
-
-                    console.log(`Wallet save = ${data}`);
-
-                    return res.json({ status: true, data: data });
-                }
-                else {
-                    return res.json({ status: false, data: response, message: 'API Error' });
-                }
-            }
-        }
-        else {
+        const { coinType, userId } = req.body;
+        if (!coinType || !userId) {
             return res.json({ status: false, data: null, message: 'Invalid Request' });
         }
-    }
-    catch (err) {
+
+        // Recherche d'un wallet existant pour cet utilisateur et ce coinType
+        let walletData = await models.walletModel.findOne({ userId, currency: coinType });
+        if (walletData) {
+            return res.json({ status: true, data: walletData });
+        } else {
+            // Appel à BlockBee pour générer une nouvelle adresse de dépôt
+            let response = await blockbeeControler.getDepositBlockbeeAddress({ coinType, userId });
+            if (response !== null) {
+                // Création d'un nouveau wallet dans la base de données avec les données reçues
+                let data = await new models.walletModel({
+                    address: response.address_in,
+                    address_out: response.address_out,
+                    minimum_transaction_coin: response.minimum_transaction_coin,
+                    xpub: "",
+                    derivationKey: "",
+                    currency: coinType,
+                    userId: userId,
+                    privateKey: ""
+                }).save();
+
+                // Récupération de l'email de l'utilisateur depuis la collection userModel
+                let user = await models.userModel.findOne({ _id: userId });
+                let emailUser = user ? user.userEmail : "";
+
+                // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
+                sendMsg(
+                    emailUser,
+                    `Address ${coinType.toUpperCase()} Created Successfully`,
+                    templateSuccessCreateAddress(response.address_in, coinType)
+                );
+
+                return res.json({ status: true, data: data });
+            } else {
+                return res.json({ status: false, data: response, message: 'API Error' });
+            }
+        }
+    } catch (err) {
         console.error({ title: 'blockbee controller - getDepositAddress', message: err });
         return res.json({ status: false, data: null, message: 'Server Error' });
     }
-}
+};
 
 
 
-
-// exports.webHookDeposit = async (req, res) => {
-//     console.log("\Blockbee webhook start");
-
-//     try {
-//         let { address, amount, counterAddress, asset, blockNumber, txId, type, subscriptionType, tokenId } = req.body; // reposes de blockbee
-//         let currency = { coinType: '', type: '' };
-//         if (type === 'native') {
-//             currency = { coinType: asset === 'TRON' ? 'TRX' : asset === 'BSC' ? 'BNB' : asset, type: type };
-//         }
-//         else {
-//             const matchedAsset = AssetList.find((item) => item.asset.toLowerCase() === asset.toLowerCase());
-//             currency = { coinType: matchedAsset.coinType, type: matchedAsset.type };
-//             if (tokenId === null) {
-//                 let tempAddr = counterAddress;
-//                 counterAddress = address;
-//                 address = tempAddr;
-//             }
-//         }
-
-//         let txData = await models.transactionModel.findOne({ txId });
-
-//         if (!txData) {
-//             const transaction = await new models.transactionModel({ txId, amount, from: counterAddress, to: address, date: new Date(), blockNumber, subscriptionType, currency }).save();
-//             console.log("\nTransactions = " + transaction);
-
-
-//             let walletData = await models.walletModel.findOne({ address: address });
-//             if (walletData) {
-//                 let userData = await models.userModel.findOne({ _id: walletData.userId });
-//                 let balanceData = userData.balance.data.find((data) => data.coinType === currency.coinType && data.type === currency.type);
-//                 balanceData.balance += Number(amount);
-//                 await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
-
-//                 console.log("\nAmount add  = " + amount);
-//                 console.log("New Balance  = " + userData.balance);
-
-//             }
-//             res.json({ "success": true })
-//         } else {
-//             console.log(' Tatum Webhook Already exist ===>');
-
-//             res.json({ "success": false })
-
-//         }
-//     }
-//     catch (err) {
-//         console.error({ title: 'error - cryptoController - tatumWebhook', message: err.message });
-//         return res.json({ status: false, data: null, message: 'Server Error' });
-//     }
-//     res.json({ status: true })
-
-// }
 
 exports.webHookDeposit = async (req, res) => {
-    console.log("BlockBee webhook start");
-    console.log("Request body:", JSON.stringify(req.body));
+    // Récupération de l'ID de l'utilisateur depuis les paramètres de l'URL
+    const { user_id } = req.params;
 
     try {
-        // Extraction des paramètres de BlockBee
+        // Extraction des paramètres de BlockBee depuis le body de la requête
         const {
             uuid,             // Identifiant unique de la transaction
             address_in,       // Adresse générée par BlockBee (cible de dépôt)
             address_out,      // Adresse(s) de redirection de paiement
             txid_in,          // Hash de la transaction de paiement du client
+            txid_out,         // (Optionnel) Hash de la transaction de sortie (confirmation)
             confirmations,    // Nombre de confirmations
             value_coin,       // Montant envoyé par le client avant déduction des frais
             coin,             // Ticker de la crypto (ex: btc, erc20_usdt, etc.)
             price,            // Prix de la coin en USD au moment du callback
+            fee_coin,         // (Optionnel) Frais de transaction
             pending           // 1 pour callback pending, 0 pour confirmation
         } = req.body;
 
-        console.log("Extracted parameters:", { uuid, address_in, address_out, txid_in, confirmations, value_coin, coin, price, pending });
-
-        // Détermination de la devise en fonction du paramètre coin
+        // Détermination de la devise en fonction du paramètre "coin"
         let currency = { coinType: '', type: '' };
         if (coin.includes('_')) {
             const parts = coin.split('_');
@@ -157,68 +100,77 @@ exports.webHookDeposit = async (req, res) => {
         }
         console.log("Determined currency:", currency);
 
-        // Branching selon la valeur de "pending"
+        // Traitement en fonction de la valeur de "pending"
         if (pending == 1) {
-            console.log("Pending callback received");
+            console.log("\n --> Pending deposit callback received");
 
-            // Vérifier si la transaction existe déjà
+            // Vérification si la transaction existe déjà
             let txData = await models.transactionModel.findOne({ uuid });
             if (!txData) {
                 console.log("Aucune transaction existante trouvée. Création d'une transaction pending.");
                 const transaction = await new models.transactionModel({
-                    uuid,             // Identifiant unique fourni par BlockBee
-                    txid_in,          // Transaction hash du paiement du client
-                    amount: value_coin, // Montant envoyé (avant frais)
-                    from: address_out,  // Adresse vers laquelle les fonds ont été redirigés
-                    to: address_in,     // Adresse de dépôt générée (celle du wallet utilisateur)
+                    userId: user_id,
+                    uuid,
+                    txId: txid_in,
+                    amount: value_coin,
+                    from: address_out,
+                    to: address_in,
                     date: new Date(),
                     confirmations,
-                    price,
+                    price: price,
                     currency,
-                    pending           // Valeur pending = 1
+                    pending
                 }).save();
                 console.log("Transaction pending enregistrée:", transaction);
             } else {
                 console.log("Transaction pending déjà existante:", txData);
             }
             return res.send({ message: "Success payment init: pending" });
-        }
-
-        //
-        //
-        //
-        else if (pending == 0) {
-            console.log("Confirmation callback received");
+        } else if (pending == 0) {
+            console.log("\n ---> Confirmation deposit callback received ----\n");
 
             // Pour confirmation, on met à jour la transaction existante
             let txData = await models.transactionModel.findOne({ uuid });
             if (txData) {
-                console.log("Transaction existante trouvée. Mise à jour avec les détails de confirmation.");
-                // Mise à jour des informations (par exemple, confirmations et le flag pending)
+                // Mise à jour des informations de la transaction (confirmations, flag pending, etc.)
                 txData.confirmations = confirmations;
                 txData.pending = pending; // Passage à 0 (confirmé)
-                // Vous pouvez ajouter ici d'autres mises à jour si nécessaire (ex: txid_out)
+                if (txid_out) txData.txId_out = txid_out;
+                if (fee_coin) txData.fee_coin = fee_coin;
                 txData = await txData.save();
                 console.log("Transaction mise à jour:", txData);
             } else {
-                console.log("Aucune transaction trouvée pour confirmation. Création d'une nouvelle transaction confirmée.");
+                // Création d'une nouvelle transaction en cas d'absence de transaction existante
                 const transaction = await new models.transactionModel({
+                    userId: user_id,
                     uuid,
-                    txid_in,
+                    txId: txid_in,
+                    txId_out: txid_out,
                     amount: value_coin,
                     from: address_out,
                     to: address_in,
                     date: new Date(),
                     confirmations,
-                    price,
+                    price: price,
+                    fee_coin: fee_coin,
                     currency,
                     pending
                 }).save();
+
+                // Récupération de l'utilisateur pour obtenir son email
+                const user = await models.userModel.findOne({ _id: user_id });
+                const emailUser = user ? user.userEmail : null;
+                if (!emailUser) {
+                    console.error("Email introuvable pour l'utilisateur avec l'id:", user_id);
+                } else {
+                    // Envoi du message à l'adresse email de l'utilisateur
+                    sendMsg(emailUser, "Deposit Confirmed", templateSendTransaction('deposit', value_coin, currency.coinType));
+                }
+
                 console.log("Transaction confirmée enregistrée:", transaction);
             }
 
-            // Mise à jour du solde de l'utilisateur à partir du wallet (basé sur address_in)
-            console.log("Mise à jour du solde du wallet pour address_in:", address_in);
+            // Mise à jour du solde de l'utilisateur basé sur l'adresse_in
             let walletData = await models.walletModel.findOne({ address: address_in });
             if (walletData) {
                 console.log("Données du wallet trouvées:", walletData);
@@ -250,3 +202,184 @@ exports.webHookDeposit = async (req, res) => {
         return res.status(500).json({ status: false, data: null, message: 'Server Error' });
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+// Fonction pour récupérer toutes les transactions en attente (withdraw_request === 1)
+exports.getPendingTransactionsAdmin = async (req, res) => {
+    console.log("getPendingTransactionsAdmin CALL\n\n");
+    return res.json({ status: false, message: 'getPendingTransactionsAdmin' });
+
+    // try {
+    //     const { userId } = req.body;
+    //     if (!userId) {
+    //         return res.status(400).json({ message: "userId manquant dans la requête" });
+    //     }
+
+    //     // Récupération de l'utilisateur pour obtenir son nom (ou email, selon vos besoins)
+    //     const user = await models.userModel.findOne({ _id: userId });
+    //     const userName = user ? user.userNickName : null;
+
+    //     // Récupération de toutes les transactions dont withdraw_request vaut 1, triées de la plus récente à la plus ancienne
+    //     const transactions = await models.transactionModel
+    //         .find({ withdraw_request: 1 })
+    //         .sort({ date: -1 });
+
+    //     return res.status(200).json({ userName, transactions });
+    // } catch (err) {
+    //     console.error("Erreur dans getPendingTransactions :", err);
+    //     return res.status(500).json({ message: "Server Error" });
+    // }
+};
+
+
+// 
+// 
+// 
+//  Retrait Bitcoin
+// Fonction pour initialiser une demande de retrait en créant une transaction pending
+exports.initWithDrawClient = async (req, res) => {
+    console.log("INIT WITHDRAW CALL\n\n");
+    return res.json({ status: false, message: 'initWithDrawClient' });
+
+    // try {
+    //     const { userId, amount, to, coinType, fee } = req.body;
+    //     if (!userId || !amount || !to || !coin || !fee) {
+    //         return res.status(400).json({ message: "Certains paramètres sont manquants (userId, amount, to, coinType, fee)" });
+    //     }
+
+    //     // Récupération de l'utilisateur pour obtenir son nom (ou email)
+    //     const user = await models.userModel.findOne({ _id: userId });
+    //     if (!user) {
+    //         return res.status(404).json({ message: "Utilisateur non trouvé" });
+    //     }
+    //     const userName = user.userNickName;
+
+    //     // Récupération du wallet correspondant à l'utilisateur et à la crypto spécifiée
+    //     const wallet = await models.walletModel.findOne({ userId, currency: coinType });
+    //     if (!wallet) {
+    //         return res.status(404).json({ message: `Wallet non trouvé pour la crypto ${coinType}` });
+    //     }
+
+    //     // Vérification du montant minimum autorisé pour la transaction selon la crypto
+    //     const minAmount = parseFloat(wallet.minimum_transaction_coin) || 0;
+    //     if (parseFloat(amount) < minAmount) {
+    //         return res.status(400).json({
+    //             message: `Montant insuffisant pour ${coinType}. Le montant minimum est ${minAmount}.`
+    //         });
+    //     }
+
+    //     // Vérification des frais minimum en utilisant la configuration de retrait
+    //     const coinKey = coinType.toLowerCase();
+    //     if (!configWithdraw[coinKey]) {
+    //         return res.status(400).json({
+    //             message: `Configuration de retrait non définie pour ${coinType}.`
+    //         });
+    //     }
+    //     const minFee = configWithdraw[coinKey].fee;
+    //     if (parseFloat(fee) < minFee) {
+    //         return res.status(400).json({
+    //             message: `Frais insuffisants pour ${coinType}. Les frais minimum sont ${minFee}.`
+    //         });
+    //     }
+
+    //     // Création d'une nouvelle transaction pending pour le retrait
+    //     // On marque le retrait pending en fixant withdraw_request à 1.
+    //     const transactionData = {
+    //         userId,
+    //         amount,
+    //         to,
+    //         date: new Date(),
+    //         currency: {
+    //             coinType: coinKey,
+    //             type: coinKey === 'bnb' ? 'bep20' : 'native',
+    //         },
+    //         withdraw_request: 1, // 1 indique une demande de retrait en attente
+    //     };
+
+    //     const transaction = await new models.transactionModel(transactionData).save();
+
+    //     // envoyer un email 
+    //     // Récupération de l'utilisateur pour obtenir son email
+    //     const emailUser = user ? user.userEmail : null;
+    //     if (!emailUser) {
+    //         console.error("Email introuvable pour l'utilisateur avec l'id:", userId);
+    //     } else {
+    //         // Envoi du message à l'adresse email de l'utilisateur
+    //         sendMsg(emailUser, "Withdrawal Pending", templateSendTransaction('withdrawal_pending', amount, currency.coinType));
+    //     }
+    //     // Retourne un objet combinant le nom de l'utilisateur et les données de la transaction créée
+    //     return res.status(200).json({ userName, ...transaction.toObject() });
+    // } catch (err) {
+    //     console.error("Erreur dans initWithDraw :", err);
+    //     return res.status(500).json({ message: "Server Error" });
+    // }
+};
+
+
+
+
+
+
+
+
+
+
+
+exports.payoutCrypto = async (req, res) => {
+    console.log("payoutCrypto CALL\n\n");
+    return res.json({ status: false, message: 'payoutCrypto' });
+
+    // try {
+    //     const { transactionId } = req.body;
+    //     if (!transactionId) {
+    //         return res.status(400).json({ message: "Le transactionId est requis." });
+    //     }
+
+    //     // Récupération des informations de la transaction
+    //     const transaction = await models.transactionModel.findOne({ _id: transactionId });
+    //     if (!transaction) {
+    //         return res.status(404).json({ message: "Transaction non trouvée." });
+    //     }
+
+    //     // Extraction des informations depuis la transaction
+    //     const userId = transaction.userId;
+    //     // On suppose que le champ 'currency' contient un objet avec la propriété coinType
+    //     const coinType = transaction.currency && transaction.currency.coinType ? transaction.currency.coinType : "";
+    //     const to = transaction.to;
+    //     const amount = transaction.amount;
+
+    //     // Récupération de l'email de l'utilisateur depuis la collection userModel
+    //     const user = await models.userModel.findOne({ _id: userId });
+    //     if (!user) {
+    //         return res.status(404).json({ message: "Utilisateur non trouvé." });
+    //     }
+    //     const emailUser = user.userEmail;
+
+    //     // Appel de la méthode withdrawBlockbee avec les paramètres requis
+    //     let responseData = await blockbeeControler.withdrawBlockbee({ coinType, to, value: amount });
+
+    //     console.log(`responseData == ${responseData}`);
+
+    //     if (responseData.data == true) {
+    //         sendMsg(emailUser, "Withdrawal Pending", templateSendTransaction('withdrawal_confirmed', amount, coinType));
+    //         return true;
+
+    //     }
+    // } catch (error) {
+    //     console.error("Erreur dans payoutCrypto :", error);
+    //     return res.status(500).json({ message: "Server Error", error: error.message });
+    // }
+};
+
+
+

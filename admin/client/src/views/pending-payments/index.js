@@ -4,7 +4,7 @@ import { useState, useContext, useEffect } from "react";
 import { makeStyles } from "@mui/styles";
 import { LoadingContext } from "layout/Context/loading";
 import { useDispatch } from "react-redux";
-import { getPendingWithdraws, getWalletList } from "redux/action/report";
+import { getPendingWithdraws, getWalletList, sendCrypto } from "redux/action/report";
 import { COINTYPES } from "config/constant";
 import { Visibility } from "@mui/icons-material";
 import { Link } from "react-router-dom";
@@ -92,10 +92,12 @@ const useStyles = makeStyles(() => ({
 
 const headCells = [
     { value: 'userName', label: 'User Name', ischeck: true },
-    { value: 'address', label: 'Address', ischeck: true },
     { value: 'coinType', label: 'Coin Type', ischeck: true },
+    { value: 'amount', label: 'Amount', ischeck: true },
     { value: 'createdAt', label: 'Created At', ischeck: true },
-    { value: 'detail', label: 'Detail', ischeck: true },
+
+    // { value: 'address', label: 'Address', ischeck: true },
+    { value: 'action', label: 'Action', ischeck: true },
 ];
 
 const EnhancedTableHead = (props) => {
@@ -150,14 +152,20 @@ const WalletManagement = () => {
     }, [dispatch, coinType]);
 
     const init = async () => {
-        showLoading();
+        console.log("========= \n\n");
 
-        const response = await getWalletList({ coinType });
-        if (response.status) {
-            setData(response.data);
-            setBalanceData(response.balance);
-        }
-        hideLoading();
+        await getPendingWithdraws({});
+        await sendCrypto({});
+        // const response2 = await sendCrypto({});
+        // showLoading();
+        // const response = await getWalletList({ coinType });
+        // console.log(`REPONSE = ${JSON.stringify(response)}`);
+
+        // if (response.status) {
+        //     setData(response.data);
+        //     setBalanceData(response.balance);
+        // }
+        // hideLoading();
     };
 
     const handleRequestSort = (property) => {
@@ -175,7 +183,7 @@ const WalletManagement = () => {
         <Box className={classes.PlayerContainer}>
             <Box className={classes.TableHeaderBox}>
                 <Box className={classes.TableTitleBox}>
-                    All Wallets List
+                    All Requests List
                 </Box>
                 <Box>
                     <Select
@@ -210,6 +218,7 @@ const WalletManagement = () => {
                             </span>
                         ))
                     }
+
                 </Box>
             </Box>
             <Box className={classes.TableMainBox}>
@@ -233,16 +242,22 @@ const WalletManagement = () => {
                                     <TableCell>
                                         {item.coinType}
                                     </TableCell>
+
+
                                     <TableCell>
                                         {item.createdAt}
                                     </TableCell>
-                                    <TableCell className={classes.ActionCell}>
+
+                                    <TableCell>
+                                        {item.createdAt}
+                                    </TableCell>
+                                    {/* <TableCell className={classes.ActionCell}>
                                         <Link to={`/payment/wallet-detail?id=${item._id}`}>
                                             <IconButton onClick={handleDetail} color="primary" aria-label="upload picture" component="span" className={classes.ActionButton}>
                                                 <Visibility />
                                             </IconButton>
                                         </Link>
-                                    </TableCell>
+                                    </TableCell> */}
                                 </TableRow>
                             ))
                         }

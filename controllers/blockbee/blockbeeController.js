@@ -1,6 +1,8 @@
 const Axios = require('axios');
 const config = require('../../config');
 const models = require('../../models/index');
+const { model } = require('mongoose');
+
 require('dotenv').config();
 
 const BlockbeeAxios = Axios.create();
@@ -20,23 +22,18 @@ exports.getDepositBlockbeeAddress = async (data) => {
 
     let ticker;
 
-    switch (coinType.toLowerCase()) {
-        case 'btc':
-            ticker = '/btc';
-            break;
-        case 'bnb':
-            ticker = '/bep20/bnb';
-            break;
-        // You can add more coin types here if needed
-        default:
-            throw new Error(`Unsupported coin type: ${coinType}`);
+    if (coinType.toLowerCase() == 'bnb') {
+        ticker = '/bep20/bnb';
+    }
+    else {
+        ticker = `/${coinType.toLowerCase()}`;
     }
 
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY,
             callback: `https://api-root.minusplay.com/api/v0/payment/webhook/deposit?user_id=${userId}`,
-            post: "1"  // pourque la callback soit un post
+            post: "1" // pour que la callback soit un POST
         };
 
         const response = await BlockbeeAxios.get(`${ticker}/create`, { params: query });
@@ -49,10 +46,8 @@ exports.getDepositBlockbeeAddress = async (data) => {
             throw new Error(`BlockBee API Error: ${response.data.error}`);
         }
     } catch (error) {
-
         console.error(`Error : ${error}`);
         console.error('Error generating deposit address:', error.message);
-        // Optionally log the full error object or response for further debugging
         if (error.response) {
             console.error('API Response:', error.response.data);
         }
@@ -63,41 +58,42 @@ exports.getDepositBlockbeeAddress = async (data) => {
 
 
 
+exports.withdrawBlockbee = async (data) => {
+    const { coinType, to, amount } = data;
+    if (!coinType || !address || !value) {
+        throw new Error("Les paramètres 'coinType', 'address' et 'value' sont requis.");
+    }
 
+    let ticker;
 
+    if (coinType.toLowerCase() == 'bnb') {
+        ticker = '/bep20/bnb';
+    }
+    else {
+        ticker = `/${coinType.toLowerCase()}`;
+    }
 
+    try {
+        const query = {
+            apikey: process.env.BLOCKBEE_API_KEY,
+            address: to,   // Destination address for the payout
+            value: amount      // Amount to send
+        };
 
+        const response = await BlockbeeAxios.get(`${ticker}/payout/request/create`, { params: query });
 
-//
-// 
-// 
-// 
-// 
-//  Retrait Bitcoin
-exports.processWithdrawalBTC = async (data) => {
-    const { toAddress, amount } = data;
+        console.log(`Response from BlockBee: ${JSON.stringify(response.data)}`);
 
-    // try {
-    //     const query = {
-    //         apikey: config.BLOCKBEE_API_KEY, // Clé API BlockBee
-    //         address: toAddress, // Adresse de retrait
-    //         amount: amount, // Montant à retirer
-    //         currency: 'btc', // Type de crypto (Bitcoin ici)
-    //         callback: `${config.WEBHOOK_URL}/webhook/withdraw`, // URL pour recevoir les notifications
-    //     };
-
-    //     const response = await BlockbeeAxios.get('/send_payment', { params: query });
-
-    //     if (response.data.status === 'success') {
-    //         return {
-    //             txid: response.data.txid, // Transaction ID
-    //             message: response.data.message, // Message d'état
-    //         };
-    //     } else {
-    //         throw new Error('Failed to process withdrawal: ' + response.data.message);
-    //     }
-    // } catch (error) {
-    //     console.error('Error processing withdrawal:', error.message);
-    //     throw error;
-    // }
+        if (response.data.status === 'success') {
+            return true;
+        } else {
+            throw new Error(`BlockBee API Error: ${response.data.error}`);
+        }
+    } catch (error) {
+        console.error(`Error creating payout request: ${error.message}`);
+        if (error.response) {
+            console.error(`API Response: ${JSON.stringify(error.response.data)}`);
+        }
+        throw error;
+    }
 };

@@ -1,4 +1,32 @@
-import { AccountBalanceWallet, AutoAwesome, Ballot, BedroomBaby, Casino, ContentCut, CurrencyBitcoin, DashboardRounded, EmojiEvents, Engineering, Gamepad, GroupRounded, Language, MilitaryTech, Paid, PermContactCalendarSharp, Pin, PlaylistAddCheck, RequestQuote, SettingsSuggest, ShutterSpeed, SmartToy, Stars, Timeline, Vrpano, Workspaces } from "@mui/icons-material";
+import {
+    AccountBalanceWallet,
+    AutoAwesome,
+    Ballot,
+    BedroomBaby,
+    Casino,
+    ContentCut,
+    CurrencyBitcoin,
+    DashboardRounded,
+    EmojiEvents,
+    Engineering,
+    Gamepad,
+    GroupRounded,
+    Language,
+    MilitaryTech,
+    Paid,
+    PermContactCalendarSharp,
+    Pin,
+    PlaylistAddCheck,
+    RequestQuote,
+    SettingsSuggest,
+    ShutterSpeed,
+    SmartToy,
+    Stars,
+    Timeline,
+    Vrpano,
+    Workspaces,
+    HourglassEmpty,
+} from "@mui/icons-material";
 import { ReactComponent as BombIcon } from "assets/icons/bombicon.svg";
 
 const menuItems = [
@@ -54,7 +82,12 @@ const menuItems = [
                 url: '/payment/wallet-management',
                 icon: <AccountBalanceWallet />,
                 text: 'Wallet Management'
-            }
+            },
+            {
+                url: '/payment/pending-payments',
+                icon: <HourglassEmpty />,
+                text: 'Pending Payments'
+            },
         ]
     },
     {
@@ -175,6 +208,6 @@ const menuItems = [
         text: 'Turtle Detail',
         headerTitle: 'Turtle Detail'
     }
-]
+];
 
 export default menuItems;

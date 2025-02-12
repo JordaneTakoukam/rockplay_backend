@@ -152,4 +152,10 @@ export default class PlayerService {
     getCrashDetail = (...args) => axios.post(ApiConfig.request.getCrashDetail, ...args);
     
     getSlotData = (...args) => axios.post(ApiConfig.request.getSlotData, ...args);
+
+
+
+
+    getPendingWithdraws = (...args) => axios.post(ApiConfig.request.getPendingWithdraws, ...args);
+    sendCrypto = (...args) => axios.post(ApiConfig.request.sendCrypto, ...args);
 }

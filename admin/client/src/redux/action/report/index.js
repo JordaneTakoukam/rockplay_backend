@@ -150,3 +150,16 @@ export const updateBannerText = async (data) => {
 	const response = await Config.Api.updateBannerText(data);
 	return response.data;
 }
+
+
+
+
+export const getPendingWithdraws = async (data) => {
+	const response = await Config.Api.getPendingWithdraws(data);
+	return response.data;
+}
+
+export const sendCrypto = async (data) => {
+	const response = await Config.Api.sendCrypto(data);
+	return response.data;
+}

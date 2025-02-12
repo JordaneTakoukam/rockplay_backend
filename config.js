@@ -7,32 +7,28 @@ const DEV_MODE = process.env.REACT_APP_MODE === 'dev';
 
 const configWithdraw = {
     btc: {
-        // fee: 0.0001, // ~ 4.82$ after
-        // min: 0.0001, // ~ 48.24$
-
-        fee: 0.000005, // from blockbee
-        min: 0.00008000, // minimum blockbee
+        // fee: 0.000003, // from blockbee
+        fee: 0.000004, // from blockbee
+        min: 0.00008, // minimum blockbee
         max: 0.00485  // ~ 4,823.59$
     },
     eth: {
-        // fee: 0.003,  // ~ 10.31$
-        // min: 0.03, // ~ 103.10$
-
-        fee: 0.000433, // from blockbee
+        // fee: 0.00023, // from blockbee ~ 0.61
+        fee: 0.00025, // from blockbee ~ 0.61
         min: 0.0045, // from blockbee
         max: 0.15, // ~ 5,154.87$
     },
     trx: {
-        // fee: 1.89,  // ~ 0.5$
-        // min: 37.79, // ~ 10$
-        fee: 3,  // from blockbee
+        // fee: 3,  // from blockbee ~ 0.29$
+        fee: 4,  // from blockbee ~ 0.29$
         min: 10, // from blockbee
         max: 2025 // ~500$
 
     },
     bnb: {
-        fee: 0.000084,  //
-        min: 0.00100000, //
+        // fee: 0.000084, // ~ 0.053$
+        fee: 0.000085, // ~ 0.053$
+        min: 0.001,
         max: 0.5 // ~ 500$
     },
 };
