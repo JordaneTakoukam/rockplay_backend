@@ -127,7 +127,21 @@ jobs:
               pm2 start ./ecosystem.config.js
             fi
             pm2 save
-            echo "✅ Déploiement terminé"
+            echo "✅ Déploiement api terminé"
+
+      - name: Deploiement du dashboard administrateur
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e  # Arrêter le script en cas d'erreur
+            cd "${{ env.PROJECT_PATH }}/admin/client" || exit 1
+            npm ci --omit=dev  # Installation propre des dépendances
+            npm run build
+            # Ajouter une étape de déploiement des fichiers statiques si nécessaire
+            echo "✅ Déploiement dashboard admin terminé - $(date)"
 
   notification:
     needs: deploy-api
