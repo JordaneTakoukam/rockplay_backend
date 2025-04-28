@@ -92,7 +92,6 @@ jobs:
             REACT_APP_MODE="${{ secrets.REACT_APP_MODE }}"
             TATUM_MAINNET_API_KEY="${{ secrets.TATUM_MAINNET_API_KEY }}"
             TATUM_TESTNET_API_KEY="${{ secrets.TATUM_TESTNET_API_KEY }}"   
-            SMTP_HOST="${{ vars.SMTP_HOST }}"
             BLOCKBEE_WEBHOOK="${{ vars.BLOCKBEE_WEBHOOK }}"
             SMTP_USERNAME="${{ vars.SMTP_USERNAME }}"
             SMTP_HOST="${{ vars.SMTP_HOST }}"
