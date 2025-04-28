@@ -62,7 +62,7 @@ module.exports = {
         }
     },
 
-    SUBSCRIBE_URL: 'https://api-root.minusplay.com/api/v0/payment/webhook-handler',
+    SUBSCRIBE_URL: 'https://api-root.rockplay.fun/api/v0/payment/webhook-handler',
     //  DEV_MODE
     //     ? 'http://localhost:5000/api/v0/payment/webhook-handler'  // local url not work
     //     : 

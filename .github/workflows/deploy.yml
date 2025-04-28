@@ -1,0 +1,194 @@
+name: Déploiement du Backend API - RockPlay
+
+on:
+  push:
+    branches: [production]
+
+env:
+  CI: false
+  PM2_NAME: api-rockplay
+  APP_NAME: Backend RockPlay
+  PROJECT_PATH: /var/www/backend/Backend-Rockplay
+  PROJET_TYPE: backend # frontend, backend
+  INDEX_FILE_NAME: server.js # frontend, backend
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Vérifier les secrets nécessaires
+        run: |
+          if [ -z "${{ secrets.SERVER_IP }}" ] || [ -z "${{ secrets.SERVER_USER }}" ] || [ -z "${{ secrets.SERVER_SSH_KEY }}" ]; then
+            echo "::error::Les secrets SERVER_IP, SERVER_USER ou SERVER_SSH_KEY ne sont pas configurés"
+            exit 1
+          fi
+
+      - name: Ajouter la clé SSH connue
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Récupérer le code du backend
+        uses: actions/checkout@v3
+        with:
+          path: backend
+
+      - name: Vérifier la structure du dépôt après checkout
+        run: |
+          echo "==== Structure complète après checkout ===="
+          tree -L 3 backend || ls -R backend
+
+      - name: Préparer la structure du dossier sur le serveur
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "=== Préparation de la structure ==="
+            sudo mkdir -p ${{ env.PROJECT_PATH }}
+            sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /var/www/${{ env.PROJET_TYPE }}
+            rm -rf ${{ env.PROJECT_PATH }}/*
+            echo "Structure prête"
+
+      - name: Transférer le dossier 'backend/' sur le serveur
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: "backend/"
+          target: "${{ env.PROJECT_PATH }}/"
+          strip_components: 1
+          overwrite: true
+
+      - name: Vérification post-transfert
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "=== Structure après transfert ==="
+            ls -la ${{ env.PROJECT_PATH }}
+
+      - name: Créer le fichier .env sur le serveur
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Création du fichier .env"
+            cat <<EOF > ${{ env.PROJECT_PATH }}/.env
+            BLOCKBEE_API_KEY_V2="${{ secrets.BLOCKBEE_API_KEY_V2 }}"
+            BLOCKBEE_RECUPERATION="${{ secrets.BLOCKBEE_RECUPERATION }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            NO_REPLY_SUB_EMAIL="${{ secrets.NO_REPLY_SUB_EMAIL }}"
+            REACT_APP_MODE="${{ secrets.REACT_APP_MODE }}"
+            TATUM_MAINNET_API_KEY="${{ secrets.TATUM_MAINNET_API_KEY }}"
+            TATUM_TESTNET_API_KEY="${{ secrets.TATUM_TESTNET_API_KEY }}"   
+
+            SMTP_HOST="${{ vars.SMTP_HOST }}"
+            BLOCKBEE_WEBHOOK="${{ vars.BLOCKBEE_WEBHOOK }}"
+            SMTP_USERNAME="${{ vars.SMTP_USERNAME }}"
+            SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}"
+            EOF
+            echo "✅ Fichier .env créé avec succès"
+            ls -la ${{ env.PROJECT_PATH }}
+
+      - name: Installer les dépendances avec npm
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ${{ env.PROJECT_PATH }}
+            echo "📦 Installation des dépendances"
+            npm install
+
+      - name: Démarrer ou recharger l'application avec PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ${{ env.PROJECT_PATH }}
+            echo "🚀 Redémarrage de l'app avec PM2 NAME ${{ env.PM2_NAME }}"
+            if pm2 list | grep -q "${{ env.PM2_NAME }}"; then
+              pm2 reload ./ecosystem.config.cjs --update-env
+            else
+              pm2 start ./ecosystem.config.cjs
+            fi
+            pm2 save
+            echo "✅ Déploiement terminé"
+
+  notification:
+    needs: deploy-api
+    runs-on: ubuntu-latest
+    environment: production
+    if: always()
+    steps:
+      - name: Construire la liste des destinataires
+        id: recipients
+        run: |
+          recipients="${{ vars.SMTP_TO }}"
+          echo "allEmails=$recipients" >> $GITHUB_OUTPUT
+          echo "Liste des destinataires : $recipients"
+
+      - name: Email succès
+        if: ${{ needs.deploy-api.result == 'success' && steps.recipients.outputs.allEmails != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: "${{ env.SMTP_HOST }}"
+          server_port: 587 #465 587
+          subject: "🎉 Déploiement réussi : ${{ env.APP_NAME }}"
+          body: |
+            ✅ L’application backend : ${{ env.APP_NAME }} a été déployée avec succès !
+
+            Détails du déploiement :
+            🔧 Workflow: ${{ github.workflow }}
+            🔖 Commit: ${{ github.sha }}
+            🌿 Branche: ${{ github.ref }}
+            🔄 Exécution : ${{ github.run_id }}
+            
+            Tout fonctionne parfaitement ! 👍
+          username: ${{ vars.SMTP_USERNAME }}
+          from: ${{ vars.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          to: ${{ steps.recipients.outputs.allEmails }}
+
+      - name: Email échec
+        if: ${{ needs.deploy-api.result == 'failure' && steps.recipients.outputs.allEmails != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: "${{ env.SMTP_HOST }}"
+          server_port: 587
+          subject: "❌ Déploiement : ${{ env.APP_NAME }} échoué ❌"
+          body: |
+            ❌ Le déploiement a échoué : ${{ env.APP_NAME }}.
+
+            Détails :
+            🔧 Workflow: ${{ github.workflow }}
+            🔖 Commit: ${{ github.sha }}
+            🌿 Branche: ${{ github.ref }}
+            🔄 Exécution : ${{ github.run_id }}
+
+            Consultez les logs ici :
+            👉 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Merci de vérifier les erreurs. 🙏
+          username: ${{ vars.SMTP_USERNAME }}
+          from: ${{ vars.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          to: ${{ steps.recipients.outputs.allEmails }}
+
+      - name: Pas de notification envoyée
+        if: ${{ steps.recipients.outputs.allEmails == '' }}
+        run: echo "Aucun email envoyé, aucune adresse définie."

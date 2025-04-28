@@ -4,11 +4,11 @@ require('dotenv').config();
 exports.sendMsg = async (to, subject, html) => {
     // Configure the Nodemailer transporter
     let transporter = nodemailer.createTransport({
-        host: process.env.HOST, 
+        host: process.env.SMTP_HOST, 
         port: 465, 
         secure: true, 
         auth: {
-            user: process.env.EMAIL_PRO, 
+            user: process.env.SMTP_USERNAME, 
             pass: process.env.PASSWORD, 
         },
     });

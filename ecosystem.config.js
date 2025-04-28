@@ -14,7 +14,7 @@ module.exports = {
             },
         },
         {
-            name: 'admin-service',
+            name: 'admin-services',
             script: './admin/AdminService.js',
             log_file: '/var/log/admin-service.log',
             error_file: '/var/log/admin-service-error.log',
@@ -23,7 +23,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'turtle-service',
+            name: 'turtle-services',
             script: './turtlerace/TurtleService.js',
             log_file: '/var/log/turtle-service.log',
             error_file: '/var/log/turtle-service-error.log',
@@ -32,7 +32,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'scissors-service',
+            name: 'scissors-services',
             script: './scissors/ScissorsService.js',
             log_file: '/var/log/scissors-service.log',
             error_file: '/var/log/scissors-service-error.log',
@@ -41,7 +41,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'mines-service',
+            name: 'mines-services',
             script: './mines/MinesService.js',
             log_file: '/var/log/mines-service.log',
             error_file: '/var/log/mines-service-error.log',
@@ -50,7 +50,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'chatroom-service',
+            name: 'chatroom-services',
             script: './userchat/UserChatService.js',
             log_file: '/var/log/chatroom-service.log',
             error_file: '/var/log/chatroom-service-error.log',
@@ -59,7 +59,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'manage-service',
+            name: 'manage-services',
             script: './management/ManagementService.js',
             log_file: '/var/log/manage-service.log',
             error_file: '/var/log/manage-service-error.log',
@@ -68,7 +68,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'dice-service',
+            name: 'dice-services',
             script: './dice/DiceService.js',
             log_file: '/var/log/dice-service.log',
             error_file: '/var/log/dice-service-error.log',
@@ -77,7 +77,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'slot-service',
+            name: 'slot-services',
             script: './slot/SlotService.js',
             log_file: '/var/log/slot-service.log',
             error_file: '/var/log/slot-service-error.log',
@@ -86,7 +86,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'plinko-service',
+            name: 'plinko-services',
             script: './plinko/PlinkoService.js',
             log_file: '/var/log/plinko-service.log',
             error_file: '/var/log/plinko-service-error.log',
@@ -95,7 +95,7 @@ module.exports = {
             watch: true,
         },
         {
-            name: 'crash-service',
+            name: 'crash-services',
             script: './crash/CrashService.js',
             log_file: '/var/log/crash-service.log',
             error_file: '/var/log/crash-service-error.log',
