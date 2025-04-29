@@ -11,19 +11,14 @@ const initController = require('./controllers/initController');
 
 
 const corsOptions = {
-    origin: 'https://rockplay.fun', // Autoriser spécifiquement votre domaine frontend
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true, // Si vous utilisez des cookies ou l'authentification
-    optionsSuccessStatus: 200 // Pour les anciens navigateurs
+  origin: ["http://localhost:5173", "http://localhost:3000", "https://rockplay.fun", "https://admin.rockplay.fun",],
+  credentials: true,
+  allowedHeaders: ["sessionId", "content-type", "Authorization"],
+  exposedHeaders: ["sessionId"],
+  methods: "GET, POST, PUT, DELETE , UPDATE, PATCH",
+  preflightContinue: false,
 };
-
-// Middleware CORS AVANT les routes
 app.use(cors(corsOptions));
-
-// Gestion explicite des requêtes OPTIONS
-app.options('*', cors(corsOptions));
-//   app.use(cors(corsOptions));
 
 
 // app.use(cors('*'));
