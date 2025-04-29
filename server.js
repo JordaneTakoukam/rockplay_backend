@@ -9,16 +9,34 @@ require('dotenv').config({ path: __dirname + '/.env' });
 
 const initController = require('./controllers/initController');
 
-app.use(cors('*'));
+
+const corsOptions = {
+    origin: 'https://rockplay.fun', // Autoriser spécifiquement votre domaine frontend
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true, // Si vous utilisez des cookies ou l'authentification
+    optionsSuccessStatus: 200 // Pour les anciens navigateurs
+};
+
+// Middleware CORS AVANT les routes
+app.use(cors(corsOptions));
+
+// Gestion explicite des requêtes OPTIONS
+app.options('*', cors(corsOptions));
+//   app.use(cors(corsOptions));
+
+
+// app.use(cors('*'));
 app.use(bodyParser.json({ limit: '1mb', type: 'application/json' }));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, authorization");
-    res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-    next();
-});
+// app.use(function (req, res, next) {
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, authorization");
+//     res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+//     next();
+// });
+
 
 app.use('/', express.static('./public'));
 
