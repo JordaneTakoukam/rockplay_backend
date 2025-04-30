@@ -89,7 +89,7 @@ jobs:
             BLOCKBEE_RECUPERATION="${{ secrets.BLOCKBEE_RECUPERATION }}"
             JWT_SECRET="${{ secrets.JWT_SECRET }}"
             NO_REPLY_SUB_EMAIL="${{ secrets.NO_REPLY_SUB_EMAIL }}"
-            REACT_APP_MODE="${{ secrets.REACT_APP_MODE }}"
+            REACT_APP_MODE="${{ vars.REACT_APP_MODE }}"
             TATUM_MAINNET_API_KEY="${{ secrets.TATUM_MAINNET_API_KEY }}"
             TATUM_TESTNET_API_KEY="${{ secrets.TATUM_TESTNET_API_KEY }}"   
             BLOCKBEE_WEBHOOK="${{ vars.BLOCKBEE_WEBHOOK }}"
@@ -130,6 +130,23 @@ jobs:
             echo "✅ Déploiement api terminé"
 
 
+      # - name: Deploiement du dashboard administrateur
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.SERVER_IP }}
+      #     username: ${{ secrets.SERVER_USER }}
+      #     key: ${{ secrets.SERVER_SSH_KEY }}
+      #     script: |
+      #     avant ceci generer un .env pour ceci 
+      #     GENERATE_SOURCEMAP=false
+      #       REACT_APP_MODE="${{ vars.REACT_APP_MODE }}"
+
+      #       set -e  # Arrêter le script en cas d'erreur
+      #       cd "${{ env.PROJECT_PATH }}/admin/client" || exit 1
+      #       npm i --force
+      #       npm run build
+      #       # Ajouter une étape de déploiement des fichiers statiques si nécessaire
+      #       echo "✅ Déploiement dashboard admin terminé - $(date)"
       - name: Deploiement du dashboard administrateur
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -137,12 +154,24 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -xe  # Activation du mode debug et arrêt en cas d'erreur
+            
+            # Configuration des variables
+            PROJECT_DIR="${{ env.PROJECT_PATH }}/admin/client"
+            ENV_FILE="$PROJECT_DIR/.env"
+
+            # Création du fichier .env
+            echo "GENERATE_SOURCEMAP=false" > $ENV_FILE
+            echo "REACT_APP_MODE=${{ vars.REACT_APP_MODE }}" >> $ENV_FILE
+
             set -e  # Arrêter le script en cas d'erreur
             cd "${{ env.PROJECT_PATH }}/admin/client" || exit 1
             npm i --force
             npm run build
-            # Ajouter une étape de déploiement des fichiers statiques si nécessaire
+            
             echo "✅ Déploiement dashboard admin terminé - $(date)"
+
+
 
   notification:
     needs: deploy-api
