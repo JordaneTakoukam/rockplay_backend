@@ -1,37 +1,36 @@
 const emailConfig = require('./email-config');
 
-exports.templateMailDepositStatus = (amount, address, coinType, status) => {
+exports.templateMailDepositStatus = (amount, address, coinType) => {
   const coin = coinType.toUpperCase();
-
-  const statusText = status === 0
-    ? `<span style="color: green; font-weight: bold;">Confirmed</span>`
-    : `<span style="color: #e69500; font-weight: bold;">Pending Confirmation</span>`;
-
-  const title = `Deposit Notification - ${coin}`;
+  const title = `Deposit Successfully Completed`;
 
   const messageBody = `
-    <p>Dear user,</p>
-    <p>We have detected a deposit sent to one of your wallet addresses.</p>
+    <p>Hello,</p>
+    <p>We have successfully confirmed your deposit of <strong>${amount} ${coin}</strong>.</p>
+    <p>The funds are now available in your RockPlay account.</p>
 
     <p><strong>Transaction details:</strong></p>
     <ul>
       <li><strong>Amount:</strong> ${amount} ${coin}</li>
       <li><strong>Source address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
-      <li><strong>Status:</strong> ${statusText}</li>
+      <li><strong>Status:</strong> <span style="color: green; font-weight: bold;">Confirmed</span></li>
     </ul>
 
-    <p>
-      ${
-        status === 0
-          ? 'This deposit has been successfully confirmed and the amount has been credited to your account.'
-          : 'Your deposit is awaiting network confirmation. The amount will be credited once the required confirmations are received.'
-      }
+    <p style="text-align: center; margin: 30px 0;">
+      <a href="${emailConfig.dashboardUrl}" style="
+        background-color: #007BFF;
+        color: #fff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        display: inline-block;
+      ">
+        Go to My Account
+      </a>
     </p>
 
-    <p>
-      If you have any questions regarding this transaction, please feel free to contact our support team.
-    </p>
-
+    <p>If you have any questions, feel free to contact our support team.</p>
     <p>Best regards,<br />The ${emailConfig.websiteName} Team</p>
   `;
 
@@ -115,8 +114,8 @@ exports.templateMailDepositStatus = (amount, address, coinType, status) => {
           </div>
           <div class="footer">
             <p>
-              This message was generated automatically. If you need assistance, please contact our 
-              <a href="mailto:${emailConfig.contactEmail}">technical support</a>.
+              This is an automated message. If you need assistance, please contact our 
+              <a href="mailto:${emailConfig.contactEmail}">support team</a>.
             </p>
             <p>© ${emailConfig.copyright} ${emailConfig.websiteName}. All rights reserved.</p>
           </div>

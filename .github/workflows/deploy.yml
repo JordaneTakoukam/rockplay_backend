@@ -204,7 +204,8 @@ jobs:
             
             Tout fonctionne parfaitement ! 👍
           username: ${{ vars.SMTP_USERNAME }}
-          from: ${{ vars.SMTP_USERNAME }}
+          from: ${{ vars.SMTP_USERNAME }}""
+
           password: ${{ secrets.SMTP_PASSWORD }}
           to: ${{ steps.recipients.outputs.allEmails }}
 

@@ -197,7 +197,7 @@ exports.webHookDeposit = async (req, res) => {
                         userData.balance.data.push({ coinType: currency.coinType, balance: Number(creditAmount), type: currency.type.toLowerCase(), chain: 'NEW CHAIN CREATE' });
                     }
                     await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
-                    console.log("Solde mis à jour pour l'utilisateur:", walletData.userId, 'solde = ', creditAmount);
+                    // console.log("Solde mis à jour pour l'utilisateur:", walletData.userId, 'solde = ', creditAmount);
                 } else {
                     console.log("Aucune donnée de wallet trouvée pour address_in:", address_in);
                 }
@@ -218,7 +218,7 @@ exports.webHookDeposit = async (req, res) => {
                             hour12: false
                         })} `,
                         templateMailDepositStatus(
-                            value_coin,
+                            creditAmount,
                             address_in,
                             currency.coinType,
                             pending

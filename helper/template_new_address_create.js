@@ -11,10 +11,18 @@ exports.templateSuccessCreateAddress = (address, coinType, minDeposit) => {
       <strong style="word-break: break-all;">${address}</strong>
     </p>
     <p>Any deposit sent to this address will be credited to your account after 3 network confirmations.</p>
+    
     <p><strong>⚠️ Deposit Restrictions:</strong></p>
     <ul>
       <li>Minimum deposit: <strong>${minDeposit} ${coin}</strong></li>
     </ul>
+
+    <div class="warning-box">
+      <strong>Note:</strong> Fees may be deducted by your sending wallet or exchange. 
+      Please ensure that the amount received by our system is <strong>at least</strong> ${minDeposit} ${coin}. 
+      Any amount below this minimum cannot be credited to your account.
+    </div>
+
     <p style="color: #ff0000; font-weight: bold;">
       Send only ${coin} to this address!
     </p>
@@ -104,10 +112,6 @@ exports.templateSuccessCreateAddress = (address, coinType, minDeposit) => {
         </div>
         <div class="content">
           ${messageBody}
-          <div class="warning-box">
-            <strong>Important:</strong> Always double-check the address and network before making a deposit. 
-            Transactions sent to an incorrect address are irreversible.
-          </div>
         </div>
         <div class="footer">
           <p>This message was generated automatically. If you have any questions, contact our 
