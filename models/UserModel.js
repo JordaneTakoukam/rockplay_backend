@@ -2,14 +2,15 @@ const mongoose = require('mongoose');
 
 const balanceObject = {
     data: [
-        { coinType: 'BTC', balance: 0, chain: 'BTC', type: 'native' },
-        { coinType: 'ETH', balance: 0, chain: 'ETH', type: 'native' },
-        { coinType: 'BNB', balance: 0, chain: 'BNB', type: 'native' },
-        { coinType: 'TRX', balance: 0, chain: 'TRON', type: 'native' },
-        { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
-        { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
-        { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
-        { coinType: 'MUP', balance: 0, chain: '', type: '' }
+        { coinType: 'BNB', chain: 'BNB', type: 'bep20', balance: 0, },
+
+        // { coinType: 'BTC', balance: 0, chain: 'BTC', type: 'native' },
+        // { coinType: 'ETH', balance: 0, chain: 'ETH', type: 'native' },
+        // { coinType: 'TRX', balance: 0, chain: 'TRON', type: 'native' },
+        // { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
+        // { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
+        // { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
+        // { coinType: 'MUP', balance: 0, chain: '', type: '' }
     ]
 }
 
@@ -25,7 +26,7 @@ const ModelSchema = mongoose.Schema({
     type: { type: String, enum: ['user', 'admin'], default: 'user' },
     balance: { type: Object, default: balanceObject },
     address: { type: Object },
-    currency: { type: Object, default: { coinType: 'BTC', type: 'native' } },
+    currency: { type: Object, default: { coinType: 'BNB', type: 'bep20' } },
     profileSet: { type: Boolean, default: false },
     campaignCode: { type: String, default: '' },
 }, { autoIndex: true, timestamps: true });

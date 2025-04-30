@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
 const models = require('../../models');
 const blockbeeControler = require('./blockbeeController');
 const { sendMsg } = require('../../helper/emailHelper');
 
 const { templateSuccessCreateAddress } = require('../../helper/template_new_address_create');
 const { templateMailDepositStatus } = require('../../helper/template_mail_deposit');
+const { templateAdminNotification } = require('../../helper/template_admin');
+const config = require('../../config');
 
 
 // generer une adresse de depot 
@@ -64,7 +65,7 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
 // 
 exports.webHookDeposit = async (req, res) => {
     // Récupération de l'ID de l'utilisateur depuis les paramètres de l'URL
-    const { user_id } = req.params;
+    const { user_id } = req.query;
 
     try {
         // Extraction des paramètres de BlockBee depuis le body de la requête
@@ -82,6 +83,11 @@ exports.webHookDeposit = async (req, res) => {
             pending           // 1 pour callback pending, 0 pour confirmation success
         } = req.body;
 
+
+        var value_coin_number = parseFloat(value_coin);  // Convertir en nombre à virgule flottante (double)
+        var fee_coin_number = parseFloat(fee_coin);      // Convertir en nombre à virgule flottante (double)
+        var creditAmount = value_coin_number - fee_coin_number;
+
         // Détermination de la devise en fonction du paramètre "coin"
         let currency = { coinType: '', type: '' };
         if (coin.includes('_')) {
@@ -93,52 +99,51 @@ exports.webHookDeposit = async (req, res) => {
             else if (prefix === "trc20") tokenType = "TRC20";
             else if (prefix === "bep20") tokenType = "BEP20";
             else if (prefix === "polygon") tokenType = "Polygon";
-            currency = { coinType: ticker, type: tokenType };
+            currency = { coinType: ticker.toUpperCase(), type: tokenType.toLowerCase() };
         } else {
             currency = { coinType: coin.toUpperCase(), type: 'native' };
         }
-        console.log("Determined currency:", currency);
+        // console.log("Determined currency:", currency);
 
         // Traitement en fonction de la valeur de "pending"
         if (pending == 1) {
             console.log("\n --> Pending deposit callback received");
 
-            // Vérification si la transaction existe déjà
-            let txData = await models.transactionModel.findOne({ uuid });
-            if (!txData) {
-                console.log("Aucune transaction existante trouvée. Création d'une transaction pending.");
-                const transaction = await new models.transactionModel({
-                    userId: user_id,
-                    uuid,
-                    txId: txid_in,
-                    amount: value_coin,
-                    from: address_out,
-                    to: address_in,
-                    date: new Date(),
-                    confirmations,
-                    price: price,
-                    currency,
-                    pending
-                }).save();
-                console.log("Transaction pending enregistrée:", transaction);
+            // // Vérification si la transaction existe déjà
+            // let txData = await models.transactionModel.findOne({ uuid });
+            // if (!txData) {
+            //     console.log("Aucune transaction existante trouvée. Création d'une transaction pending.");
+            //     const transaction = await new models.transactionModel({
+            //         userId: user_id,
+            //         uuid,
+            //         txId: txid_in,
+            //         amount: value_coin,
+            //         from: address_out,
+            //         to: address_in,
+            //         date: new Date(),
+            //         confirmations,
+            //         price: price,
+            //         currency,
+            //         pending
+            //     }).save();
+            //     console.log("Transaction pending enregistrée:", transaction);
 
-                sendMsg(
-                    emailUser,
-                    `Deposit in ${currency.coinType.toUpperCase()} detected`,
-                    templateMailDepositStatus(
-                        value_coin,
-                        address_out,
-                        currency.coinType,
-                        pending
-                    ),
-                    // amount, address, coinType, status
-                );
-            } else {
-                console.log("Transaction pending déjà existante:", txData);
-            }
-            return res.send({ message: "Success payment init: pending" });
+            //     sendMsg(
+            //         emailUser,
+            //         `Deposit in ${currency.coinType.toUpperCase()} detected`,
+            //         templateMailDepositStatus(
+            //             value_coin,
+            //             address_out,
+            //             currency.coinType,
+            //             pending
+            //         ),
+            //         // amount, address, coinType, status
+            //     );
+            // } else {
+            //     console.log("Transaction pending déjà existante:", txData);
+            // }
+            // return res.send({ message: "Success payment init: pending" });
         } else if (pending == 0) {
-            console.log("\n ---> Confirmation deposit callback received ----\n");
 
             // Pour confirmation, on met à jour la transaction existante
             let txData = await models.transactionModel.findOne({ uuid });
@@ -149,18 +154,21 @@ exports.webHookDeposit = async (req, res) => {
                 if (txid_out) txData.txId_out = txid_out;
                 if (fee_coin) txData.fee_coin = fee_coin;
                 txData = await txData.save();
-                console.log("Transaction mise à jour:", txData);
+                console.log("Transaction existante, mise à jour:", txData);
             } else {
                 // Création d'une nouvelle transaction en cas d'absence de transaction existante
+                var depositDate = new Date();
+
+
                 const transaction = await new models.transactionModel({
                     userId: user_id,
                     uuid,
                     txId: txid_in,
                     txId_out: txid_out,
-                    amount: value_coin,
+                    amount: creditAmount,
                     from: address_out,
                     to: address_in,
-                    date: new Date(),
+                    date: depositDate,
                     confirmations,
                     price: price,
                     fee_coin: fee_coin,
@@ -171,50 +179,94 @@ exports.webHookDeposit = async (req, res) => {
                 // Récupération de l'utilisateur pour obtenir son email
                 const user = await models.userModel.findOne({ _id: user_id });
                 const emailUser = user ? user.userEmail : null;
-                if (!emailUser) {
-                    console.error("Email introuvable pour l'utilisateur avec l'id:", user_id);
+
+
+                // Mise à jour du solde de l'utilisateur basé sur l'adresse_in
+                let walletData = await models.walletModel.findOne({ address: address_in });
+                if (walletData) {
+                    let userData = await models.userModel.findOne({ _id: walletData.userId });
+                    let balanceEntry = userData.balance.data.find((data) =>
+                        data.coinType === currency.coinType && data.type.toLowerCase() === currency.type.toLowerCase()
+                    );
+                    if (balanceEntry) {
+                        console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
+                        balanceEntry.balance += Number(creditAmount);
+                        console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
+                    } else {
+                        console.log("Aucune entrée de solde trouvée pour cette devise. Création d'une nouvelle entrée.");
+                        userData.balance.data.push({ coinType: currency.coinType, balance: Number(creditAmount), type: currency.type.toLowerCase(), chain: 'NEW CHAIN CREATE' });
+                    }
+                    await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
+                    console.log("Solde mis à jour pour l'utilisateur:", walletData.userId, 'solde = ', creditAmount);
                 } else {
+                    console.log("Aucune donnée de wallet trouvée pour address_in:", address_in);
+                }
+
+                // -------------- notifier le user que sont compte vient d'etre crediter du montant - frais
+                if (emailUser) {
                     // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
                     sendMsg(
                         emailUser,
-                        `Deposit of ${currency.coinType.toUpperCase()} confirmed – user account credited`,
+                        `Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                            hour12: false
+                        })} `,
                         templateMailDepositStatus(
                             value_coin,
-                            address_out,
+                            address_in,
                             currency.coinType,
                             pending
                         ),
                         // amount, address, coinType, status
                     );
                     // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
-
                 }
 
-                console.log("Transaction confirmée enregistrée:", transaction);
-            }
 
-            // Mise à jour du solde de l'utilisateur basé sur l'adresse_in
-            let walletData = await models.walletModel.findOne({ address: address_in });
-            if (walletData) {
-                console.log("Données du wallet trouvées:", walletData);
-                let userData = await models.userModel.findOne({ _id: walletData.userId });
-                console.log("Données de l'utilisateur trouvées:", userData);
-                let balanceEntry = userData.balance.data.find((data) =>
-                    data.coinType === currency.coinType && data.type === currency.type
+                // -------------- notifier l'admin qu'un nouveau user a fait un depot
+                sendMsg(
+                    config.adminEmail,
+                    `New user registered via Google`,
+                    templateAdminNotification("new_deposit", {
+                        amount: creditAmount,
+                        coinType: currency.coinType,
+                        address: address_in,
+                        status: 0,
+                        email: emailUser,
+                        date: depositDate.toLocaleString('en-GB', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                            hour12: false
+                        }),
+                    })
+                    // type : 'new_deposit'
+                    // data = {
+                    //   amount: 250,
+                    //   coinType: 'USDT',
+                    //   address: '0x123abc456def789...',
+                    //   status: 0, // 0 = confirmé, 1 = en attente
+                    //   date: '30/04/2025 11:12',
+                    //   email: 'user@example.com' // ajout de l'email de l'utilisateur
+                    // }
+
                 );
-                if (balanceEntry) {
-                    console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
-                    balanceEntry.balance += Number(value_coin);
-                    console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
-                } else {
-                    console.log("Aucune entrée de solde trouvée pour cette devise. Création d'une nouvelle entrée.");
-                    userData.balance.data.push({ coinType: currency.coinType, type: currency.type, balance: Number(value_coin) });
-                }
-                await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
-                console.log("Solde mis à jour pour l'utilisateur:", walletData.userId);
-            } else {
-                console.log("Aucune donnée de wallet trouvée pour address_in:", address_in);
+
+
             }
+
+
+
             return res.send({ message: "Success payment confirmed" });
         } else {
             console.log("Valeur de 'pending' inconnue reçue:", pending);
