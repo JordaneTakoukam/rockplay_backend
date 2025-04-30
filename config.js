@@ -70,4 +70,5 @@ module.exports = {
 
     DEV_MODE,
     configWithdraw,
+    adminEmail: "takoukam.jordane@gmail@gmail.com"
 };

@@ -5,17 +5,17 @@ exports.sendMsg = async (to, subject, html) => {
     // Configure the Nodemailer transporter
     let transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST, 
-        port: 465, 
+        port: process.env.SMTP_PORT,  
         secure: true, 
         auth: {
             user: process.env.SMTP_USERNAME, 
-            pass: process.env.PASSWORD, 
+            pass: process.env.SMTP_PASSWORD, 
         },
     });
 
     // Email options
     const mailOptions = {
-        from: `"Minusplay" <${process.env.NO_REPLY_SUB_EMAIL}>`,
+        from: `"RockPlay" <${process.env.NO_REPLY_SUB_EMAIL}>`,
         to: to,
         subject: subject,
         html: html,

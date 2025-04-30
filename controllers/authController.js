@@ -6,6 +6,7 @@ const config = require('../config');
 const mongoose = require('mongoose');
 const { sendMsg, authenticationEmail } = require('../helper/emailHelper');
 const { requestBalanceUpdate } = require('../socket/Manager');
+const { templateAdminNotification } = require('../helper/template_admin');
 
 exports.getAuthData = async (req, res) => {
     try {
@@ -50,6 +51,9 @@ exports.userGoogleLogin = async (req, res) => {
                     address: {},
                     campaignCode: campaignData.exist ? campaignData.code : ''
                 }
+
+
+
                 let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 saveData.userToken = userToken;
                 let data = await new models.userModel(saveData).save();
@@ -64,6 +68,32 @@ exports.userGoogleLogin = async (req, res) => {
                     }
                 } while (!flag);
 
+                // --------------------------------- email
+                // notifier l'admin qu'un nouvel use a ete creer 
+                sendMsg(
+                    config.adminEmail,
+                    `New user registered via Google`,
+                    templateAdminNotification("new_user", {
+                        email: data.userEmail,
+                        date: data.createdAt.toLocaleString('en-GB', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                            hour12: false
+                        }),
+                    })
+                    // type : 'new_user'
+                    // data = {
+                    //   email: 'nouvel.utilisateur@example.com',
+                    //   date: '30/04/2025 10:25'
+                    // }        
+                );
+                // --------------------------------- email 
+
                 const settingData = await models.gameSettingModel.findOne({ userId: data._id });
                 if (!settingData) {
                     let saveData = await models.gameSettingModel({ userId: data._id }).save();
@@ -72,6 +102,10 @@ exports.userGoogleLogin = async (req, res) => {
                 else {
                     return res.send({ status: true, userData: data, setting: settingData });
                 }
+
+
+
+
             }
             else {
                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
@@ -86,6 +120,10 @@ exports.userGoogleLogin = async (req, res) => {
                     return res.send({ status: true, userData: userData, setting: settingData });
                 }
             }
+
+
+            // notifier l'admin
+
         }
         else {
             return res.send({ status: false, message: 'Email Verification Failed' });
@@ -345,6 +383,32 @@ exports.verifyEmailCode = async (req, res) => {
                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 userData.userToken = userToken;
                 await userData.save();
+
+                // --------------------------------- email
+                // notifier l'admin qu'un nouvel use a ete creer 
+                sendMsg(
+                    config.adminEmail,
+                    `New user registered via Email`,
+                    templateAdminNotification("new_user", {
+                        email: newUser.userEmail,
+                        date: newUser.createdAt.toLocaleString('en-GB', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                            hour12: false
+                        }),
+                    })
+                    // type : 'new_user'
+                    // data = {
+                    //   email: 'nouvel.utilisateur@example.com',
+                    //   date: '30/04/2025 10:25'
+                    // }        
+                );
+                // --------------------------------- email 
 
                 // Find or create the game settings for the existing user
                 const settingData = await models.gameSettingModel.findOne({ userId: userData._id });

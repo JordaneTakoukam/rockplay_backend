@@ -11,7 +11,7 @@ const initController = require('./controllers/initController');
 
 
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://rockplay.fun", "https://admin.rockplay.fun",],
+  origin: ["http://localhost:8800", "http://localhost:3000", "https://rockplay.fun", "https://admin.rockplay.fun",],
   credentials: true,
   allowedHeaders: ["sessionId", "content-type", "Authorization"],
   exposedHeaders: ["sessionId"],

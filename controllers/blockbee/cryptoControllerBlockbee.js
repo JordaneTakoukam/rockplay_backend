@@ -1,13 +1,10 @@
 const mongoose = require('mongoose');
 const models = require('../../models');
 const blockbeeControler = require('./blockbeeController');
-const Axios = require('axios');
-const SocketManager = require('../../socket/Manager');
-const { v4: uuidv4 } = require('uuid');
 const { sendMsg } = require('../../helper/emailHelper');
-const { templateSendTransaction } = require('../../helper/template_send_transaction');
-const { configWithdraw } = require('../../config');
+
 const { templateSuccessCreateAddress } = require('../../helper/template_new_address_create');
+const { templateMailDepositStatus } = require('../../helper/template_mail_deposit');
 
 
 // generer une adresse de depot 
@@ -42,11 +39,13 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
                 let user = await models.userModel.findOne({ _id: userId });
                 let emailUser = user ? user.userEmail : "";
 
+
                 // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
                 sendMsg(
                     emailUser,
                     `Address ${coinType.toUpperCase()} Created Successfully`,
-                    templateSuccessCreateAddress(response.address_in, coinType)
+                    templateSuccessCreateAddress(response.address_in, coinType, response.minimum_transaction_coin),
+                    // address, coinType, minDeposit, maxDeposit
                 );
 
                 return res.json({ status: true, data: data });
@@ -62,7 +61,7 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
 
 
 
-
+// 
 exports.webHookDeposit = async (req, res) => {
     // Récupération de l'ID de l'utilisateur depuis les paramètres de l'URL
     const { user_id } = req.params;
@@ -80,7 +79,7 @@ exports.webHookDeposit = async (req, res) => {
             coin,             // Ticker de la crypto (ex: btc, erc20_usdt, etc.)
             price,            // Prix de la coin en USD au moment du callback
             fee_coin,         // (Optionnel) Frais de transaction
-            pending           // 1 pour callback pending, 0 pour confirmation
+            pending           // 1 pour callback pending, 0 pour confirmation success
         } = req.body;
 
         // Détermination de la devise en fonction du paramètre "coin"
@@ -122,6 +121,18 @@ exports.webHookDeposit = async (req, res) => {
                     pending
                 }).save();
                 console.log("Transaction pending enregistrée:", transaction);
+
+                sendMsg(
+                    emailUser,
+                    `Deposit in ${currency.coinType.toUpperCase()} detected`,
+                    templateMailDepositStatus(
+                        value_coin,
+                        address_out,
+                        currency.coinType,
+                        pending
+                    ),
+                    // amount, address, coinType, status
+                );
             } else {
                 console.log("Transaction pending déjà existante:", txData);
             }
@@ -163,8 +174,20 @@ exports.webHookDeposit = async (req, res) => {
                 if (!emailUser) {
                     console.error("Email introuvable pour l'utilisateur avec l'id:", user_id);
                 } else {
-                    // Envoi du message à l'adresse email de l'utilisateur
-                    sendMsg(emailUser, "Deposit Confirmed", templateSendTransaction('deposit', value_coin, currency.coinType));
+                    // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
+                    sendMsg(
+                        emailUser,
+                        `Deposit of ${currency.coinType.toUpperCase()} confirmed – user account credited`,
+                        templateMailDepositStatus(
+                            value_coin,
+                            address_out,
+                            currency.coinType,
+                            pending
+                        ),
+                        // amount, address, coinType, status
+                    );
+                    // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
+
                 }
 
                 console.log("Transaction confirmée enregistrée:", transaction);
