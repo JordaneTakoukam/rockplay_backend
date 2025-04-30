@@ -3,7 +3,7 @@ const isLocal = process.env.REACT_APP_MODE === 'dev' ? true : false;
 // console.log("App Mode = ", process.env.REACT_APP_MODE);
 
 // const pro = 'https://admin-services.playzelo.com/admin';
-const pro = 'https://admin-dashboard.minusplay.com/admin';
+const pro = 'https://admin.rockplay.fun/admin';
 const dev = 'http://localhost:6100/admin';
 const url = isLocal ? dev : pro;
 

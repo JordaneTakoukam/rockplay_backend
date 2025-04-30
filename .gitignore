@@ -3,4 +3,5 @@ admin/client/build
 db
 /client
 .env
-admin/client/.env.env
+/admin/client/.env
+*.env
