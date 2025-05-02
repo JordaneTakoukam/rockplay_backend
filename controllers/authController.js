@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const { sendMsg, authenticationEmail } = require('../helper/emailHelper');
 const { requestBalanceUpdate } = require('../socket/Manager');
 const { templateAdminNotification } = require('../helper/template_admin');
+const { templateWelcomeNewUser } = require('../helper/template_welcome');
+const emailConfig = require('../helper/email-config');
 
 exports.getAuthData = async (req, res) => {
     try {
@@ -67,6 +69,21 @@ exports.userGoogleLogin = async (req, res) => {
                         await new models.campaignCodeModel({ userId: data._id, code: campaignCode }).save();
                     }
                 } while (!flag);
+                // --------------------------------- email
+                // notifier l'admin qu'un nouvel use a ete creer 
+                sendMsg(
+                    data.userEmail,
+                    `Welcome to ${emailConfig.websiteName}`,
+                    templateWelcomeNewUser({
+                        email: data.userEmail,
+                        userName: data.userName,
+                    })
+                    // data = {
+                    //   email: 'nouvel.utilisateur@example.com',
+                    //   username: 'JohnDoe'
+                    // }    
+                );
+                // --------------------------------- email 
 
                 // --------------------------------- email
                 // notifier l'admin qu'un nouvel use a ete creer 
@@ -76,14 +93,13 @@ exports.userGoogleLogin = async (req, res) => {
                     templateAdminNotification("new_user", {
                         email: data.userEmail,
                         date: data.createdAt.toLocaleString('en-GB', {
-                            weekday: 'short',
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            timeZone: 'UTC',
-                            hour12: false
+                            hour12: false,
+                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
                         }),
                     })
                     // type : 'new_user'
@@ -384,6 +400,23 @@ exports.verifyEmailCode = async (req, res) => {
                 userData.userToken = userToken;
                 await userData.save();
 
+
+                // --------------------------------- email
+                // notifier l'admin qu'un nouvel use a ete creer 
+                sendMsg(
+                    newUser.userEmail,
+                    `Welcome to ${emailConfig.websiteName}`,
+                    templateWelcomeNewUser({
+                        email: data.userEmail,
+                        userName: data.userName,
+                    })
+                    // data = {
+                    //   email: 'nouvel.utilisateur@example.com',
+                    //   username: 'JohnDoe'
+                    // }    
+                );
+                // --------------------------------- email 
+
                 // --------------------------------- email
                 // notifier l'admin qu'un nouvel use a ete creer 
                 sendMsg(
@@ -391,15 +424,14 @@ exports.verifyEmailCode = async (req, res) => {
                     `New user registered via Email`,
                     templateAdminNotification("new_user", {
                         email: newUser.userEmail,
-                        date: newUser.createdAt.toLocaleString('en-GB', {
-                            weekday: 'short',
+                        date: data.createdAt.toLocaleString('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            timeZone: 'UTC',
-                            hour12: false
+                            hour12: false,
+                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
                         }),
                     })
                     // type : 'new_user'
@@ -1296,22 +1328,28 @@ exports.getCampaignDetail = async (req, res) => {
 exports.getTransactionHistory = async (req, res) => {
     try {
         const { userId } = req.body;
-        const response = await models.walletModel.aggregate([
-            {
-                $match: {
-                    userId: mongoose.Types.ObjectId(userId)
-                }
-            },
-            {
-                $lookup: {
-                    from: 'transactions',
-                    foreignField: 'to',
-                    localField: 'address',
-                    as: 'transactionData'
-                }
-            }
-        ]);
-        return res.json({ status: true, data: response });
+        // const response = await models.walletModel.aggregate([
+        //     {
+        //         $match: {
+        //             userId: mongoose.Types.ObjectId(userId)
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: 'transactions',
+        //             foreignField: 'to',
+        //             localField: 'address',
+        //             as: 'transactionData'
+        //         }
+        //     }
+        // ]);
+        // return res.json({ status: true, data: response });
+        const transactions = await models.transactionModel.find({
+            userId: userId // ou mongoose.Types.ObjectId(userId) si c'est un ObjectId dans le schéma
+        }).sort({ updatedAt: -1 });
+
+
+        return res.json({ status: true, data: transactions });
     }
     catch (err) {
         console.error({ title: 'getTransactionHistory', message: err.message });

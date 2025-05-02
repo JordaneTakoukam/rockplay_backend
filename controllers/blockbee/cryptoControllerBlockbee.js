@@ -6,6 +6,9 @@ const { templateSuccessCreateAddress } = require('../../helper/template_new_addr
 const { templateMailDepositStatus } = require('../../helper/template_mail_deposit');
 const { templateAdminNotification } = require('../../helper/template_admin');
 const config = require('../../config');
+const { cryptoAddressValidator } = require('../../betUtils/validate_crypto_address');
+const { templateMailWithdrawalRequest } = require('../../helper/template_init_withdraw');
+const { templateAdminPendingWithdraw } = require('../../helper/template_admin_pending_withdraw');
 
 
 // generer une adresse de depot 
@@ -41,13 +44,21 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
                 let emailUser = user ? user.userEmail : "";
 
 
-                // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
-                sendMsg(
-                    emailUser,
-                    `Address ${coinType.toUpperCase()} Created Successfully`,
-                    templateSuccessCreateAddress(response.address_in, coinType, response.minimum_transaction_coin),
-                    // address, coinType, minDeposit, maxDeposit
-                );
+                if (emailUser) {
+                    console.log(`send email deposit address = ${response.address_in}, ${coinType}, ${response.minimum_transaction_coin}`);
+
+                    // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
+                    sendMsg(
+                        emailUser,
+                        `Address ${coinType.toUpperCase()} Created Successfully`,
+                        templateSuccessCreateAddress(response.address_in, coinType, response.minimum_transaction_coin),
+                        // address, coinType, minDeposit, maxDeposit
+                    );
+                }
+                else {
+                    console.log("Email non disponible");
+
+                }
 
                 return res.json({ status: true, data: data });
             } else {
@@ -103,47 +114,8 @@ exports.webHookDeposit = async (req, res) => {
         } else {
             currency = { coinType: coin.toUpperCase(), type: 'native' };
         }
-        // console.log("Determined currency:", currency);
 
-        // Traitement en fonction de la valeur de "pending"
-        if (pending == 1) {
-            console.log("\n --> Pending deposit callback received");
-
-            // // Vérification si la transaction existe déjà
-            // let txData = await models.transactionModel.findOne({ uuid });
-            // if (!txData) {
-            //     console.log("Aucune transaction existante trouvée. Création d'une transaction pending.");
-            //     const transaction = await new models.transactionModel({
-            //         userId: user_id,
-            //         uuid,
-            //         txId: txid_in,
-            //         amount: value_coin,
-            //         from: address_out,
-            //         to: address_in,
-            //         date: new Date(),
-            //         confirmations,
-            //         price: price,
-            //         currency,
-            //         pending
-            //     }).save();
-            //     console.log("Transaction pending enregistrée:", transaction);
-
-            //     sendMsg(
-            //         emailUser,
-            //         `Deposit in ${currency.coinType.toUpperCase()} detected`,
-            //         templateMailDepositStatus(
-            //             value_coin,
-            //             address_out,
-            //             currency.coinType,
-            //             pending
-            //         ),
-            //         // amount, address, coinType, status
-            //     );
-            // } else {
-            //     console.log("Transaction pending déjà existante:", txData);
-            // }
-            // return res.send({ message: "Success payment init: pending" });
-        } else if (pending == 0) {
+        if (pending == 0) {
 
             // Pour confirmation, on met à jour la transaction existante
             let txData = await models.transactionModel.findOne({ uuid });
@@ -173,7 +145,8 @@ exports.webHookDeposit = async (req, res) => {
                     price: price,
                     fee_coin: fee_coin,
                     currency,
-                    pending
+                    pending,
+                    type_transaction: "deposit"
                 }).save();
 
                 // Récupération de l'utilisateur pour obtenir son email
@@ -189,9 +162,9 @@ exports.webHookDeposit = async (req, res) => {
                         data.coinType === currency.coinType && data.type.toLowerCase() === currency.type.toLowerCase()
                     );
                     if (balanceEntry) {
-                        console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
-                        balanceEntry.balance += Number(creditAmount);
-                        console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
+                        // console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
+                        balanceEntry.balance = Number(balanceEntry.balance || 0) + Number(creditAmount);
+                        // console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
                     } else {
                         console.log("Aucune entrée de solde trouvée pour cette devise. Création d'une nouvelle entrée.");
                         userData.balance.data.push({ coinType: currency.coinType, balance: Number(creditAmount), type: currency.type.toLowerCase(), chain: 'NEW CHAIN CREATE' });
@@ -208,14 +181,13 @@ exports.webHookDeposit = async (req, res) => {
                     sendMsg(
                         emailUser,
                         `Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
-                            weekday: 'short',
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            timeZone: 'UTC',
-                            hour12: false
+                            hour12: false,
+                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
                         })} `,
                         templateMailDepositStatus(
                             creditAmount,
@@ -240,14 +212,13 @@ exports.webHookDeposit = async (req, res) => {
                         status: 0,
                         email: emailUser,
                         date: depositDate.toLocaleString('en-GB', {
-                            weekday: 'short',
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            timeZone: 'UTC',
-                            hour12: false
+                            hour12: false,
+                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
                         }),
                     })
                     // type : 'new_deposit'
@@ -323,81 +294,132 @@ exports.getPendingTransactionsAdmin = async (req, res) => {
 //  Retrait Bitcoin
 // Fonction pour initialiser une demande de retrait en créant une transaction pending
 exports.initWithDrawClient = async (req, res) => {
-    console.log("INIT WITHDRAW CALL\n\n");
-    return res.json({ status: false, message: 'initWithDrawClient' });
+    console.log("INIT WITHDRAW CALL");
 
-    // try {
-    //     const { userId, amount, to, coinType, fee } = req.body;
-    //     if (!userId || !amount || !to || !coin || !fee) {
-    //         return res.status(400).json({ message: "Certains paramètres sont manquants (userId, amount, to, coinType, fee)" });
-    //     }
+    const { coinType, amount, address, userId } = req.body;
+    const coinKey = coinType?.toLowerCase();
 
-    //     // Récupération de l'utilisateur pour obtenir son nom (ou email)
-    //     const user = await models.userModel.findOne({ _id: userId });
-    //     if (!user) {
-    //         return res.status(404).json({ message: "Utilisateur non trouvé" });
-    //     }
-    //     const userName = user.userNickName;
+    // 1. Validation des champs requis
+    if (!userId || !amount || !address || !coinType) {
+        return res.status(400).json({ error: 'Please fill all required fields' });
+    }
 
-    //     // Récupération du wallet correspondant à l'utilisateur et à la crypto spécifiée
-    //     const wallet = await models.walletModel.findOne({ userId, currency: coinType });
-    //     if (!wallet) {
-    //         return res.status(404).json({ message: `Wallet non trouvé pour la crypto ${coinType}` });
-    //     }
+    // 2. Validation du format de l'adresse
+    if (!cryptoAddressValidator(coinKey, address)) {
+        return res.status(400).json({ error: `Invalid ${coinType.toUpperCase()} address format` });
+    }
 
-    //     // Vérification du montant minimum autorisé pour la transaction selon la crypto
-    //     const minAmount = parseFloat(wallet.minimum_transaction_coin) || 0;
-    //     if (parseFloat(amount) < minAmount) {
-    //         return res.status(400).json({
-    //             message: `Montant insuffisant pour ${coinType}. Le montant minimum est ${minAmount}.`
-    //         });
-    //     }
+    // Récupération utilisateur avec population du solde
+    const user = await models.userModel.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    //     // Vérification des frais minimum en utilisant la configuration de retrait
-    //     const coinKey = coinType.toLowerCase();
-    //     if (!configWithdraw[coinKey]) {
-    //         return res.status(400).json({
-    //             message: `Configuration de retrait non définie pour ${coinType}.`
-    //         });
-    //     }
-    //     const minFee = configWithdraw[coinKey].fee;
-    //     if (parseFloat(fee) < minFee) {
-    //         return res.status(400).json({
-    //             message: `Frais insuffisants pour ${coinType}. Les frais minimum sont ${minFee}.`
-    //         });
-    //     }
 
-    //     // Création d'une nouvelle transaction pending pour le retrait
-    //     // On marque le retrait pending en fixant withdraw_request à 1.
-    //     const transactionData = {
-    //         userId,
-    //         amount,
-    //         to,
-    //         date: new Date(),
-    //         currency: {
-    //             coinType: coinKey,
-    //             type: coinKey === 'bnb' ? 'bep20' : 'native',
-    //         },
-    //         withdraw_request: 1, // 1 indique une demande de retrait en attente
-    //     };
+    // Vérifier s'il existe déjà une demande de retrait en attente
+    const existingPendingWithdraw = await models.transactionModel.findOne({
+        userId,
+        type_transaction: "withdraw",
+        withdraw_request: 1
+    });
 
-    //     const transaction = await new models.transactionModel(transactionData).save();
+    if (existingPendingWithdraw) {
+        return res.status(400).json({
+            error: "You already have a pending withdrawal request. Please wait until it is processed before making another."
+        });
+    }
 
-    //     // envoyer un email 
-    //     // Récupération de l'utilisateur pour obtenir son email
-    //     const emailUser = user ? user.userEmail : null;
-    //     if (!emailUser) {
-    //         console.error("Email introuvable pour l'utilisateur avec l'id:", userId);
-    //     } else {
-    //         // Envoi du message à l'adresse email de l'utilisateur
-    //         sendMsg(emailUser, "Withdrawal Pending", templateSendTransaction('withdrawal_pending', amount, currency.coinType));
-    //     }
-    //     // Retourne un objet combinant le nom de l'utilisateur et les données de la transaction créée
-    //     return res.status(200).json({ userName, ...transaction.toObject() });
-    // } catch (err) {
-    //     console.error("Erreur dans initWithDraw :", err);
-    //     return res.status(500).json({ message: "Server Error" });
-    // }
+    // Vérification solde
+    const balanceEntry = user.balance.data.find(e => e.coinType.toUpperCase() === coinType.toUpperCase());
+    if (!balanceEntry) return res.status(400).json({ error: `${coinType} balance not found` });
+    //balance = {"coinType":"BNB","chain":"BNB","type":"bep20","balance":0.0076490408}
+
+    const availableBalance = Number(balanceEntry.balance);
+    const withdrawalAmount = Number(amount);
+    const withdrawConfig = config.configWithdraw[coinKey];
+    // pour le bnb Withdraw Config: { fee: 0.000085, min: 0.002, max: 0.5, precision: 5 }
+
+
+    // Validations montants
+    if (withdrawalAmount < withdrawConfig.min) {
+        return res.status(400).json({ error: `Minimum withdrawal: ${withdrawConfig.min.toFixed(withdrawConfig.precision)} ${coinType}` });
+    }
+    if (withdrawalAmount > withdrawConfig.max) {
+        return res.status(400).json({ error: `Maximum withdrawal: ${withdrawConfig.max.toFixed(withdrawConfig.precision)} ${coinType}` });
+    }
+    if (withdrawalAmount > availableBalance) {
+        return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+
+    // // Mise à jour du solde
+    user.balance.data = user.balance.data.map(e => {
+        if (e.coinType.toUpperCase() === coinType.toUpperCase()) {
+            return { ...e, balance: (Number(e.balance) - withdrawalAmount).toFixed(withdrawConfig.precision) };
+        }
+        return e;
+    });
+
+
+    user.markModified('balance');
+    await user.save();
+
+
+
+    // on creer la transactions en attente
+    const transactionData = {
+        userId,
+        amount: withdrawalAmount,
+        to: address,
+        date: new Date(),
+        currency: {
+            coinType: coinKey.toUpperCase(),
+            type: coinKey === 'bnb' ? 'bep20' : 'native',
+        },
+        type_transaction: "withdraw",
+        withdraw_request: 1, // 1 indique une demande de retrait en attente
+    };
+
+    const transaction = new models.transactionModel(transactionData);
+    await transaction.save();
+
+
+
+    // Envoi emails
+    if (user.userEmail) {
+        const emailData = {
+            amount: withdrawalAmount.toFixed(withdrawConfig.precision),
+            address,
+            coinType: coinType.toUpperCase(),
+            fee: withdrawConfig.fee.toFixed(withdrawConfig.precision),
+            finalAmount: (withdrawalAmount - withdrawConfig.fee).toFixed(withdrawConfig.precision),
+            transactionId: transaction._id
+        };
+
+        // Email utilisateur
+        sendMsg(
+            user.userEmail,
+            `Withdrawal Request Confirmation - ${new Date().toLocaleDateString()}`,
+            templateMailWithdrawalRequest(emailData)
+        );
+
+        // Email admin
+        sendMsg(
+            config.adminEmail,
+            `New Withdrawal Request - ${coinType.toUpperCase()}`,
+            templateAdminPendingWithdraw({
+                ...emailData,
+                userEmail: user.userEmail,
+                userId: user._id
+            })
+        );
+    }
+
+
+    return res.status(200).json({
+        status: true,
+        message: "Withdrawal processed successfully",
+
+    });
+
 };
 
 

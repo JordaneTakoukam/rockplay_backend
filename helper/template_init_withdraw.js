@@ -1,19 +1,29 @@
+const config = require('../config');
 const emailConfig = require('./email-config');
 
-exports.templateMailDepositStatus = (amount, address, coinType) => {
-  const coin = coinType.toUpperCase();
-  const title = `Deposit Successfully Completed`;
+exports.templateMailWithdrawalRequest = ({ amount, address, coinType }) => {
+    const coin = coinType.toUpperCase();
 
-  const messageBody = `
+    const coinKey = coinType?.toLowerCase();
+    const withdrawalConfig = config.configWithdraw[coinKey];
+    const precisionByCurrency = withdrawalConfig?.precision || 0;
+
+    const fee = amount * 0.005;
+    const finalAmount = (amount - fee).toFixed(precisionByCurrency);
+    const title = `Withdrawal Request Submitted`;
+
+    const messageBody = `
     <p>Hello,</p>
-    <p>We have successfully confirmed your deposit of <strong>${amount} ${coin}</strong>.</p>
-    <p>The funds are now available in your RockPlay account.</p>
+    <p>Your withdrawal request of <strong>${amount} ${coin}</strong> has been successfully created.</p>
+    <p>The amount will be processed and sent to the address provided within <strong>24 hours</strong>.</p>
 
-    <p><strong>Transaction details:</strong></p>
+    <p><strong>Withdrawal details:</strong></p>
     <ul>
-      <li><strong>Amount:</strong> ${amount} ${coin}</li>
-      <li><strong>Source address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
-      <li><strong>Status:</strong> <span style="color: green; font-weight: bold;">Confirmed</span></li>
+      <li><strong>Requested Amount:</strong> ${amount} ${coin}</li>
+      <li><strong>Network Fee (0.5%):</strong> ${fee.toFixed(8)} ${coin}</li>
+      <li><strong>Amount to Receive:</strong> ${finalAmount} ${coin}</li>
+      <li><strong>Destination Address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
+      <li><strong>Status:</strong> <span style="color: orange; font-weight: bold;">Pending</span></li>
     </ul>
 
     <p style="text-align: center; margin: 30px 0;">
@@ -30,11 +40,11 @@ exports.templateMailDepositStatus = (amount, address, coinType) => {
       </a>
     </p>
 
-    <p>If you have any questions, feel free to contact our support team.</p>
+    <p>If you have any questions or concerns, please feel free to contact our support team.</p>
     <p>Best regards,<br />The ${emailConfig.websiteName} Team</p>
   `;
 
-  return `
+    return `
     <!DOCTYPE html>
     <html lang="en">
       <head>

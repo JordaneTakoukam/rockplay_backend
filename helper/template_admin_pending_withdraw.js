@@ -1,23 +1,28 @@
 const emailConfig = require('./email-config');
 
-exports.templateMailDepositStatus = (amount, address, coinType) => {
+exports.templateAdminPendingWithdraw = ({ amount, address, coinType, userEmail, userId }) => {
   const coin = coinType.toUpperCase();
-  const title = `Deposit Successfully Completed`;
+  const finalAmount = amount;
+  const title = `New Withdrawal Request`;
+
+  const requestDate = new Date().toLocaleString();
 
   const messageBody = `
-    <p>Hello,</p>
-    <p>We have successfully confirmed your deposit of <strong>${amount} ${coin}</strong>.</p>
-    <p>The funds are now available in your RockPlay account.</p>
+    <p>Hello Admin,</p>
+    <p>A new withdrawal request has been submitted by a user.</p>
 
-    <p><strong>Transaction details:</strong></p>
+    <p><strong>Request Details:</strong></p>
     <ul>
-      <li><strong>Amount:</strong> ${amount} ${coin}</li>
-      <li><strong>Source address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
-      <li><strong>Status:</strong> <span style="color: green; font-weight: bold;">Confirmed</span></li>
+      <li><strong>User ID:</strong> ${userId}</li>
+      <li><strong>User Email:</strong> ${userEmail}</li>
+      <li><strong>Requested Amount:</strong> ${amount} ${coin}</li>
+      <li><strong>Destination Address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
+      <li><strong>Request Date:</strong> ${requestDate}</li>
+      <li><strong>Status:</strong> <span style="color: orange; font-weight: bold;">Pending</span></li>
     </ul>
 
     <p style="text-align: center; margin: 30px 0;">
-      <a href="${emailConfig.websiteLink}" style="
+      <a href="${emailConfig.websiteLink}/admin" style="
         background-color: #007BFF;
         color: #fff;
         padding: 12px 24px;
@@ -26,12 +31,11 @@ exports.templateMailDepositStatus = (amount, address, coinType) => {
         font-weight: bold;
         display: inline-block;
       ">
-        Go to My Account
+        View in Admin Panel
       </a>
     </p>
 
-    <p>If you have any questions, feel free to contact our support team.</p>
-    <p>Best regards,<br />The ${emailConfig.websiteName} Team</p>
+    <p>Best regards,<br />The ${emailConfig.websiteName} System</p>
   `;
 
   return `

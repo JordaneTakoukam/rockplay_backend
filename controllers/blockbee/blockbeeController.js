@@ -32,7 +32,7 @@ exports.getDepositBlockbeeAddress = async (data) => {
     try {
         const query = {
             apikey: process.env.BLOCKBEE_API_KEY_V2,
-            callback: `https://api-root.rockplay.fun/api/v0/payment/webhook/deposit?user_id=${userId}`,
+            callback: `${process.env.BLOCKBEE_WEBHOOK_DEPOSIT}?user_id=${userId}`,
             post: "1" // pour que la callback soit un POST
         };
 

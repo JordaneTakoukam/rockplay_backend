@@ -2,15 +2,19 @@ const mongoose = require('mongoose');
 
 const balanceObject = {
     data: [
-        { coinType: 'BNB', chain: 'BNB', type: 'bep20', balance: 0, },
-
-        // { coinType: 'BTC', balance: 0, chain: 'BTC', type: 'native' },
-        // { coinType: 'ETH', balance: 0, chain: 'ETH', type: 'native' },
-        // { coinType: 'TRX', balance: 0, chain: 'TRON', type: 'native' },
-        // { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
+        { coinType: 'BNB', chain: 'BNB', type: 'bep20', balance: 0 },
+        { coinType: 'BTC', chain: 'BTC', type: 'native', balance: 0 },
+        { coinType: 'BTC_LN', chain: 'BTC', type: 'lightning', balance: 0 },  // Bitcoin Lightning
+        { coinType: 'BCH', chain: 'BCH', type: 'native', balance: 0 },        // Bitcoin Cash
+        { coinType: 'LTC', chain: 'LTC', type: 'native', balance: 0 },        // Litecoin
+        { coinType: 'DOGE', chain: 'DOGE', type: 'native', balance: 0 },      // Dogecoin
+        { coinType: 'ETH', chain: 'ETH', type: 'native', balance: 0 },        // Ethereum (ERC20)
+        { coinType: 'TRX', chain: 'TRON', type: 'native', balance: 0 },
+        { coinType: 'SOL', chain: 'SOL', type: 'native', balance: 0 },
+       // { coinType: 'SOL', balance: 0, chain: 'SOL', type: 'sol' },
         // { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
         // { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
-        // { coinType: 'MUP', balance: 0, chain: '', type: '' }
+        { coinType: 'RP', balance: 0, chain: '', type: '' }
     ]
 }
 

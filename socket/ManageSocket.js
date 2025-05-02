@@ -6,10 +6,10 @@ const APP_MODE = process.env.REACT_APP_MODE === 'dev';
 module.exports = class ManageSocket {
     socket = null;
 
-    
+
 
     constructor() {
-        this.socket = io.connect(APP_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manage-services.minusplay.com`);
+        this.socket = io.connect(APP_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manages-services.rockplay.fun`);
         this.bind();
     }
 
