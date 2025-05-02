@@ -86,17 +86,20 @@ jobs:
             echo "Création du fichier .env"
             cat <<EOF > ${{ env.PROJECT_PATH }}/.env
             BLOCKBEE_API_KEY_V2="${{ secrets.BLOCKBEE_API_KEY_V2 }}"
-            BLOCKBEE_RECUPERATION="${{ secrets.BLOCKBEE_RECUPERATION }}"
+            BLOCKBEE_V2_RECUPERATION="${{ secrets.BLOCKBEE_V2_RECUPERATION }}"
             JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            NO_REPLY_SUB_EMAIL="${{ secrets.NO_REPLY_SUB_EMAIL }}"
-            REACT_APP_MODE="${{ vars.REACT_APP_MODE }}"
+            SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}"
             TATUM_MAINNET_API_KEY="${{ secrets.TATUM_MAINNET_API_KEY }}"
-            TATUM_TESTNET_API_KEY="${{ secrets.TATUM_TESTNET_API_KEY }}"   
-            BLOCKBEE_WEBHOOK="${{ vars.BLOCKBEE_WEBHOOK }}"
+            TATUM_TESTNET_API_KEY="${{ secrets.TATUM_TESTNET_API_KEY }}"  
+
+            ADMIN_EMAIL="${{ vars.ADMIN_EMAIL }}"
+            BLOCKBEE_WEBHOOK_DEPOSIT="${{ vars.BLOCKBEE_WEBHOOK_DEPOSIT }}"
+            BLOCKBEE_WEBHOOK_WITHDRAW="${{ vars.BLOCKBEE_WEBHOOK_WITHDRAW }}"
+            NO_REPLY_SUB_EMAIL="${{ vars.NO_REPLY_SUB_EMAIL }}"
+            REACT_APP_MODE="${{ vars.REACT_APP_MODE }}"
             SMTP_USERNAME="${{ vars.SMTP_USERNAME }}"
             SMTP_HOST="${{ vars.SMTP_HOST }}"
             SMTP_PORT="${{ vars.SMTP_PORT }}"
-            SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}"
             EOF
             echo "✅ Fichier .env créé avec succès"
             ls -la ${{ env.PROJECT_PATH }}
