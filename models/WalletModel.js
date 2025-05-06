@@ -5,7 +5,7 @@ const ModelSchema = mongoose.Schema({
     address_out: { type: String, default: '' },
 
 
-    currency: { type: String, default: 'BNB', enum: ['BTC', 'ETH', 'TRX', 'BNB'] },
+    currency: { type: String, default: 'BNB', enum: ['BNB', 'BTC', 'BTC_LN', 'BCH', 'LTC', 'DOGE', 'ETH', 'TRX', 'SOL', 'USDT'] },
     derivationKey: { type: Number, default: 1 },
     xpub: { type: String, default: '' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },

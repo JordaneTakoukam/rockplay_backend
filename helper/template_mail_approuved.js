@@ -1,36 +1,38 @@
-const config = require("../config");
-const emailConfig = require("./email-config");
+const config = require('../config');
+const emailConfig = require('./email-config');
 
-exports.templateWihdrawInit = ({ amount, address, coinType }) => {
+exports.templateMailWithdrawalApproved = ({ amount, address, coinType }) => {
   const coin = coinType.toUpperCase();
-
   const coinKey = coinType?.toLowerCase();
   const withdrawalConfig = config.configWithdraw[coinKey];
   const precisionByCurrency = withdrawalConfig?.precision || 0;
 
-  // 🛠️ Conversion sécurisée de amount en Number
   const parsedAmount = parseFloat(amount);
+
+  const finalAmount = (parsedAmount).toFixed(precisionByCurrency);
+
   const fee = parsedAmount * (config.configWithdraw.withdraw_fee / 100);
-  const finalAmount = (parsedAmount - fee).toFixed(precisionByCurrency);
-  const title = `Withdrawal Request Submitted`;
+  const amountReceive = (parsedAmount - fee).toFixed(precisionByCurrency);
+
+  const title = `Withdrawal Approved`;
 
   const messageBody = `
     <p>Hello,</p>
-    <p>Your withdrawal request of <strong>${parsedAmount.toFixed(precisionByCurrency)} ${coin}</strong> has been successfully created.</p>
-    <p>The amount will be processed and sent to the address provided within <strong>24 hours</strong>.</p>
+    <p>We’re pleased to inform you that your withdrawal request of <strong>${parsedAmount.toFixed(precisionByCurrency)} ${coin}</strong> has been <strong style="color: green;">approved by our administrator</strong>.</p>
+    <p>Your account will be credited to the address below within the next <strong>24 hours</strong>.</p>
 
-    <p><strong>Withdrawal details:</strong></p>
+    <p><strong>Withdrawal Details:</strong></p>
     <ul>
-      <li><strong>Requested Amount:</strong> ${parsedAmount.toFixed(precisionByCurrency)} ${coin}</li>
+      <li><strong>Approved Amount:</strong> ${parsedAmount.toFixed(precisionByCurrency)} ${coin}</li>
       <li><strong>Network Fee (${config.configWithdraw.withdraw_fee}%):</strong> ${fee.toFixed(precisionByCurrency)} ${coin}</li>
-      <li><strong>Amount to Receive:</strong> ${finalAmount} ${coin}</li>
+      <li><strong>Amount to Receive:</strong> ${amountReceive} ${coin}</li>
       <li><strong>Destination Address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
-      <li><strong>Status:</strong> <span style="color: orange; font-weight: bold;">Pending</span></li>
+      <li><strong>Status:</strong> <span style="color: green; font-weight: bold;">Approved - Processing</span></li>
     </ul>
 
     <p style="text-align: center; margin: 30px 0;">
       <a href="${emailConfig.websiteLink}" style="
-        background-color: #007BFF;
+        background-color: #28a745;
         color: #fff;
         padding: 12px 24px;
         text-decoration: none;
@@ -38,12 +40,12 @@ exports.templateWihdrawInit = ({ amount, address, coinType }) => {
         font-weight: bold;
         display: inline-block;
       ">
-        Go to My Account
+        View My Account
       </a>
     </p>
 
-    <p>If you have any questions or concerns, please feel free to contact our support team.</p>
-    <p>Best regards,<br />The ${emailConfig.websiteName} Team</p>
+    <p>If you have any questions, feel free to contact our support team.</p>
+    <p>Thank you for choosing ${emailConfig.websiteName}!</p>
   `;
 
   return `
@@ -75,7 +77,7 @@ exports.templateWihdrawInit = ({ amount, address, coinType }) => {
           .header {
             text-align: center;
             margin-bottom: 25px;
-            border-bottom: 2px solid #007BFF;
+            border-bottom: 2px solid #28a745;
             padding-bottom: 15px;
           }
           .header h1 {
@@ -126,7 +128,7 @@ exports.templateWihdrawInit = ({ amount, address, coinType }) => {
           </div>
           <div class="footer">
             <p>
-              This is an automated message. If you need assistance, please contact our 
+              This is an automated message. If you need help, please contact our 
               <a href="mailto:${emailConfig.contactEmail}">support team</a>.
             </p>
             <p>© ${emailConfig.copyright} ${emailConfig.websiteName}. All rights reserved.</p>

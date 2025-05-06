@@ -80,7 +80,8 @@ Router.post('/getSlotData', adminController.getSlotData);
 
 
 
-Router.post('/getPendingWithdraws', cryptoBlockbeeController.getPendingTransactionsAdmin);
-Router.post('/sendCrypto', cryptoBlockbeeController.payoutCrypto);
+Router.post('/getPendingWithdraws', cryptoBlockbeeController.getPendingTransactionsAdmin); //------------
+Router.post('/sendCrypto', cryptoBlockbeeController.validatePayment); //--------------
+Router.post('/payoutCrypto', cryptoBlockbeeController.payoutCrypto); //--------------
 
 module.exports = Router;

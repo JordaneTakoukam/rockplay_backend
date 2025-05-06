@@ -1,29 +1,22 @@
+const config = require('../config');
 const emailConfig = require('./email-config');
 
+
+
 exports.templateAdminNotification = (type, data) => {
-  // type : 'new_user'
-  // data = {
-  //   email: 'nouvel.utilisateur@example.com',
-  //   date: '30/04/2025 10:25'
-  // }
+  // Fonction pour formater le montant avec la précision appropriée
+  const formatAmount = (amount, coinType) => {
+    if (!amount || !coinType) return amount;
 
-  // type : 'new_deposit'
-  // data = {
-  //   amount: 250,
-  //   coinType: 'USDT',
-  //   address: '0x123abc456def789...',
-  //   status: 0, // 0 = confirmé, 1 = en attente
-  //   date: '30/04/2025 11:12',
-  //   email: 'user@example.com' // ajout de l'email de l'utilisateur
-  // }
+    const coinKey = coinType.toLowerCase();
+    const withdrawalConfig = config.configWithdraw[coinKey];
+    const precision = withdrawalConfig?.precision || (coinType === 'USDT' ? 2 : 8);
 
-  // type : 'new_ask_withdraw'
-  // data = {
-  //   amount: 120,
-  //   coinType: 'BTC',
-  //   toAddress: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
-  //   date: '30/04/2025 14:40'
-  // }
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount)) return amount;
+
+    return parsedAmount.toFixed(precision);
+  };
 
   let title = '';
   let messageBody = '';
@@ -41,29 +34,31 @@ exports.templateAdminNotification = (type, data) => {
       break;
 
     case 'new_deposit':
+      const formattedDepositAmount = formatAmount(data.amount, data.coinType);
       title = data.status === 0
-        ? `Deposit Confirmed: ${data.amount} ${data.coinType.toUpperCase()}`
-        : `Deposit Pending: ${data.amount} ${data.coinType.toUpperCase()}`;
+        ? `Deposit Confirmed: ${formattedDepositAmount} ${data.coinType.toUpperCase()}`
+        : `Deposit Pending: ${formattedDepositAmount} ${data.coinType.toUpperCase()}`;
 
       messageBody = `
         <p>A user has made a deposit.</p>
         <ul>
-          <li><strong>Amount:</strong> ${data.amount} ${data.coinType.toUpperCase()}</li>
+          <li><strong>Amount:</strong> ${formattedDepositAmount} ${data.coinType.toUpperCase()}</li>
           <li><strong>Source Address:</strong><br /><span style="word-break: break-all;">${data.address}</span></li>
           <li><strong>Status:</strong> ${data.status === 0 ? 'Confirmed' : 'Pending Confirmation'}</li>
           <li><strong>Date:</strong> ${data.date || 'Not specified'}</li>
-          <li><strong>User Email:</strong> ${data.email}</li> <!-- Email ajouté ici -->
+          <li><strong>User Email:</strong> ${data.email}</li>
         </ul>
       `;
       break;
 
     case 'new_ask_withdraw':
+      const formattedWithdrawAmount = formatAmount(data.amount, data.coinType);
       title = 'New Withdrawal Request';
 
       messageBody = `
         <p>A user has requested a withdrawal.</p>
         <ul>
-          <li><strong>Amount:</strong> ${data.amount} ${data.coinType.toUpperCase()}</li>
+          <li><strong>Amount:</strong> ${formattedWithdrawAmount} ${data.coinType.toUpperCase()}</li>
           <li><strong>Destination Address:</strong><br /><span style="word-break: break-all;">${data.toAddress}</span></li>
           <li><strong>Date:</strong> ${data.date || 'Not specified'}</li>
         </ul>
@@ -149,7 +144,8 @@ exports.templateAdminNotification = (type, data) => {
          <p>Ce message a été généré automatiquement. Pour toute question, contactez le 
               <a href="mailto:${emailConfig.contactEmail}" style="color: #007BFF; text-decoration: none;">support technique</a>.
             </p>
-            <p>© ${emailConfig.copyright} ${emailConfig.websiteName}. Tous droits réservés.</p>        </div>
+            <p>© ${emailConfig.copyright} ${emailConfig.websiteName}. Tous droits réservés.</p>
+        </div>
       </div>
     </body>
     </html>

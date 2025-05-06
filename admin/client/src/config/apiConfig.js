@@ -112,7 +112,7 @@ export default class PlayerService {
     updateUnlockSetting = (...args) => axios.post(ApiConfig.request.updateUnlockSetting, ...args);
 
     getDiceData = (...args) => axios.post(ApiConfig.request.getDiceData, ...args);
-    
+
     getPlinkoData = (...args) => axios.post(ApiConfig.request.getPlinkoData, ...args);
 
     insertGame = (...args) => axios.post(ApiConfig.request.insertGame, ...args);
@@ -130,27 +130,27 @@ export default class PlayerService {
     updateCurrency = (...args) => axios.post(ApiConfig.request.updateCurrency, ...args);
 
     readCurrency = (...args) => axios.post(ApiConfig.request.readCurrency, ...args);
-    
+
     getUserLevelList = (...args) => axios.post(ApiConfig.request.getUserLevelList, ...args);
-    
+
     saveUserLevelData = (...args) => axios.post(ApiConfig.request.saveUserLevelData, ...args);
-    
+
     getBannerText = (...args) => axios.post(ApiConfig.request.getBannerText, ...args);
-    
+
     updateBannerText = (...args) => axios.post(ApiConfig.request.updateBannerText, ...args);
-    
+
     addNewTournament = (...args) => axios.post(ApiConfig.request.addNewTournament, ...args);
-    
+
     getTournamentList = (...args) => axios.post(ApiConfig.request.getTournamentList, ...args);
-    
+
     updateTournament = (...args) => axios.post(ApiConfig.request.updateTournament, ...args);
-    
+
     deleteTournament = (...args) => axios.post(ApiConfig.request.deleteTournament, ...args);
-    
+
     getCrashData = (...args) => axios.post(ApiConfig.request.getCrashData, ...args);
-    
+
     getCrashDetail = (...args) => axios.post(ApiConfig.request.getCrashDetail, ...args);
-    
+
     getSlotData = (...args) => axios.post(ApiConfig.request.getSlotData, ...args);
 
 
@@ -158,4 +158,5 @@ export default class PlayerService {
 
     getPendingWithdraws = (...args) => axios.post(ApiConfig.request.getPendingWithdraws, ...args);
     sendCrypto = (...args) => axios.post(ApiConfig.request.sendCrypto, ...args);
+    payoutCrypto = (...args) => axios.post(ApiConfig.request.payoutCrypto, ...args);
 }

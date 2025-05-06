@@ -7,8 +7,9 @@ const { templateMailDepositStatus } = require('../../helper/template_mail_deposi
 const { templateAdminNotification } = require('../../helper/template_admin');
 const config = require('../../config');
 const { cryptoAddressValidator } = require('../../betUtils/validate_crypto_address');
-const { templateMailWithdrawalRequest } = require('../../helper/template_init_withdraw');
+const { templateWihdrawInit } = require('../../helper/template_init_withdraw');
 const { templateAdminPendingWithdraw } = require('../../helper/template_admin_pending_withdraw');
+const { templateMailWithdrawalApproved } = require('../../helper/template_mail_approuved');
 
 
 // generer une adresse de depot 
@@ -46,14 +47,27 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
 
                 if (emailUser) {
                     console.log(`send email deposit address = ${response.address_in}, ${coinType}, ${response.minimum_transaction_coin}`);
+                    var minDeposit = config.configWithdraw[coinType.toLowerCase()].minDeposit;
 
                     // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
-                    sendMsg(
-                        emailUser,
-                        `Address ${coinType.toUpperCase()} Created Successfully`,
-                        templateSuccessCreateAddress(response.address_in, coinType, response.minimum_transaction_coin),
-                        // address, coinType, minDeposit, maxDeposit
-                    );
+                    try {
+                        console.log(`emailUser = ${emailUser}`);
+                        console.log(`address_in = ${response.address_in}`);
+                        console.log(`coinType = ${coinType}`);
+                        console.log(`minDeposit = ${minDeposit}`);
+
+                        sendMsg(
+                            emailUser,
+                            `Address ${coinType.toUpperCase()} Created Successfully`,
+                            templateSuccessCreateAddress(response.address_in, coinType, minDeposit),
+                            // address, coinType, minDeposit, maxDeposit
+                        );
+                    } catch (e) {
+                        console.log("Un probleme est survenue lors de l'envoie du mail d'adresse creer");
+                        console.log(`Probleme = ${e}`);
+
+
+                    }
                 }
                 else {
                     console.log("Email non disponible");
@@ -126,7 +140,7 @@ exports.webHookDeposit = async (req, res) => {
                 if (txid_out) txData.txId_out = txid_out;
                 if (fee_coin) txData.fee_coin = fee_coin;
                 txData = await txData.save();
-                console.log("Transaction existante, mise à jour:", txData);
+                // console.log("Transaction existante, mise à jour:", txData);
             } else {
                 // Création d'une nouvelle transaction en cas d'absence de transaction existante
                 var depositDate = new Date();
@@ -190,12 +204,13 @@ exports.webHookDeposit = async (req, res) => {
                             timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
                         })} `,
                         templateMailDepositStatus(
-                            creditAmount,
-                            address_in,
-                            currency.coinType,
-                            pending
+                            {
+                                amount: creditAmount,
+                                address: address_in,
+                                coinType: currency.coinType,
+                            }
                         ),
-                        // amount, address, coinType, status
+                        // amount, address, coinType
                     );
                     // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
                 }
@@ -204,7 +219,15 @@ exports.webHookDeposit = async (req, res) => {
                 // -------------- notifier l'admin qu'un nouveau user a fait un depot
                 sendMsg(
                     config.adminEmail,
-                    `New user registered via Google`,
+                    `Ne Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                        timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
+                    })} `,
                     templateAdminNotification("new_deposit", {
                         amount: creditAmount,
                         coinType: currency.coinType,
@@ -260,32 +283,6 @@ exports.webHookDeposit = async (req, res) => {
 
 
 
-// Fonction pour récupérer toutes les transactions en attente (withdraw_request === 1)
-exports.getPendingTransactionsAdmin = async (req, res) => {
-    console.log("getPendingTransactionsAdmin CALL\n\n");
-    return res.json({ status: false, message: 'getPendingTransactionsAdmin' });
-
-    // try {
-    //     const { userId } = req.body;
-    //     if (!userId) {
-    //         return res.status(400).json({ message: "userId manquant dans la requête" });
-    //     }
-
-    //     // Récupération de l'utilisateur pour obtenir son nom (ou email, selon vos besoins)
-    //     const user = await models.userModel.findOne({ _id: userId });
-    //     const userName = user ? user.userNickName : null;
-
-    //     // Récupération de toutes les transactions dont withdraw_request vaut 1, triées de la plus récente à la plus ancienne
-    //     const transactions = await models.transactionModel
-    //         .find({ withdraw_request: 1 })
-    //         .sort({ date: -1 });
-
-    //     return res.status(200).json({ userName, transactions });
-    // } catch (err) {
-    //     console.error("Erreur dans getPendingTransactions :", err);
-    //     return res.status(500).json({ message: "Server Error" });
-    // }
-};
 
 
 // 
@@ -294,7 +291,6 @@ exports.getPendingTransactionsAdmin = async (req, res) => {
 //  Retrait Bitcoin
 // Fonction pour initialiser une demande de retrait en créant une transaction pending
 exports.initWithDrawClient = async (req, res) => {
-    console.log("INIT WITHDRAW CALL");
 
     const { coinType, amount, address, userId } = req.body;
     const coinKey = coinType?.toLowerCase();
@@ -389,7 +385,6 @@ exports.initWithDrawClient = async (req, res) => {
             amount: withdrawalAmount.toFixed(withdrawConfig.precision),
             address,
             coinType: coinType.toUpperCase(),
-            fee: withdrawConfig.fee.toFixed(withdrawConfig.precision),
             finalAmount: (withdrawalAmount - withdrawConfig.fee).toFixed(withdrawConfig.precision),
             transactionId: transaction._id
         };
@@ -398,7 +393,7 @@ exports.initWithDrawClient = async (req, res) => {
         sendMsg(
             user.userEmail,
             `Withdrawal Request Confirmation - ${new Date().toLocaleDateString()}`,
-            templateMailWithdrawalRequest(emailData)
+            templateWihdrawInit(emailData)
         );
 
         // Email admin
@@ -432,51 +427,216 @@ exports.initWithDrawClient = async (req, res) => {
 
 
 
-exports.payoutCrypto = async (req, res) => {
-    console.log("payoutCrypto CALL\n\n");
-    return res.json({ status: false, message: 'payoutCrypto' });
 
-    // try {
-    //     const { transactionId } = req.body;
-    //     if (!transactionId) {
-    //         return res.status(400).json({ message: "Le transactionId est requis." });
-    //     }
 
-    //     // Récupération des informations de la transaction
-    //     const transaction = await models.transactionModel.findOne({ _id: transactionId });
-    //     if (!transaction) {
-    //         return res.status(404).json({ message: "Transaction non trouvée." });
-    //     }
+// Fonction pour récupérer toutes les transactions en attente (withdraw_request === 1)
+exports.getPendingTransactionsAdmin = async (req, res) => {
+    try {
+        const transactions = await models.transactionModel.aggregate([
+            {
+                $match: {
+                    type_transaction: 'withdraw',
+                    withdraw_request: 1
+                }
+            },
+            {
+                $sort: { updatedAt: 1 }
+            },
+            {
+                $addFields: {
+                    userObjectId: { $toObjectId: "$userId" } // 👈 conversion string -> ObjectId
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userObjectId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$user',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    txId: 1,
+                    txId_out: 1,
+                    amount: 1,
+                    to: 1,
+                    from: 1,
+                    currency: 1,
+                    type_transaction: 1,
+                    withdraw_request: 1,
+                    pending: 1,
+                    updatedAt: 1,
+                    createdAt: 1,
+                    email: '$user.userEmail',
+                    username: '$user.userName'
+                }
+            }
+        ]);
 
-    //     // Extraction des informations depuis la transaction
-    //     const userId = transaction.userId;
-    //     // On suppose que le champ 'currency' contient un objet avec la propriété coinType
-    //     const coinType = transaction.currency && transaction.currency.coinType ? transaction.currency.coinType : "";
-    //     const to = transaction.to;
-    //     const amount = transaction.amount;
-
-    //     // Récupération de l'email de l'utilisateur depuis la collection userModel
-    //     const user = await models.userModel.findOne({ _id: userId });
-    //     if (!user) {
-    //         return res.status(404).json({ message: "Utilisateur non trouvé." });
-    //     }
-    //     const emailUser = user.userEmail;
-
-    //     // Appel de la méthode withdrawBlockbee avec les paramètres requis
-    //     let responseData = await blockbeeControler.withdrawBlockbee({ coinType, to, value: amount });
-
-    //     console.log(`responseData == ${responseData}`);
-
-    //     if (responseData.data == true) {
-    //         sendMsg(emailUser, "Withdrawal Pending", templateSendTransaction('withdrawal_confirmed', amount, coinType));
-    //         return true;
-
-    //     }
-    // } catch (error) {
-    //     console.error("Erreur dans payoutCrypto :", error);
-    //     return res.status(500).json({ message: "Server Error", error: error.message });
-    // }
+        return res.json({ status: true, data: transactions });
+    } catch (err) {
+        console.error({ title: 'getPendingTransactionsAdmin', message: err.message });
+        return res.json({ status: false, message: 'Server Error' });
+    }
 };
 
 
 
+
+
+
+
+// fonction pour payer user 
+exports.validatePayment = async (req, res) => {
+    const { userId, userEmail, coin, address, value } = req.body;
+
+    let response = await blockbeeControler.withdrawBlockbee({ coinType: coin, to: address, amount: value });
+
+    if (response.status) {
+        // mettre a jour la transactions et envoyer un email au users
+        try {
+            const result = await models.transactionModel.findOneAndUpdate(
+                {
+                    userId,
+                    pending: -1,  // Transaction en attente de traitement
+                    withdraw_request: 1  // Demande de retrait initiée
+                },
+                {
+                    $set: {
+                        uuid: response.request_id,  // ID de la requête BlockBee
+                        pending: 0,                          // 0 = transaction confirmée
+                        withdraw_request: 0,                 // 0 = retrait terminé
+                        date_confirm: new Date(),            // Date de confirmation
+                    },
+                    $push: {
+                        logs: {
+                            date: new Date(),
+                            event: 'withdraw_processed',
+                            message: 'Retrait confirmé par BlockBee'
+                        }
+                    }
+                },
+                {
+                    new: true,       // Retourne le document mis à jour
+                    upsert: false     // Ne pas créer si inexistant
+                }
+            );
+
+            if (!result) {
+                throw new Error('Transaction introuvable ou déjà traitée');
+            }
+
+            // envoyer le mail de retrait approuver
+            // Email admin
+            sendMsg(
+                userEmail,
+                `New Withdrawal Request - ${coin.toUpperCase()}`,
+                templateMailWithdrawalApproved({
+                    amount: value,
+                    address,
+                    coinType: coin,
+                })
+            );
+
+        } catch (err) {
+            console.error("Erreur lors de la mise à jour de la transaction :", err.message);
+            throw err;
+        }
+
+    }
+
+
+    return res.json({ status: true, data: response });
+
+
+};
+
+
+
+
+
+// fonction pour payer user 
+exports.payoutCrypto = async (req, res) => {
+    // const { payout_id } = req.body;
+
+    // console.log(`payloadCrypto ==== ${payout_id}`);
+
+    // // const { userId, userEmail, coin, address, value } = req.body;
+
+    // let response = await blockbeeControler.payoutBlockbee({ payout_id });
+
+    // console.log(`response = ${JSON.stringify(response)}`);
+
+
+    // if (response.status == true) {
+    //     return res.json({
+    //         status: true,
+    //         data: "response",
+    //         message: response.message
+    //     });
+    // } else {
+
+    //     return res.json({
+    //         status: false,
+    //         data: "response",
+    //         message: response.message
+    //     });
+    // }
+
+
+
+    // if (response.status) {
+    //     // mettre a jour la transactions et envoyer un email au users
+    //     try {
+    //         const result = await models.transactionModel.findOneAndUpdate(
+    //             { userId }, // on identifie la transaction via uuid
+    //             {
+    //                 $set: {
+    //                     uuid: response.request_id,
+    //                     pending: 0,               // 0 = confirmé
+    //                     withdraw_request: 0,      // 0 = retrait terminé/crédité
+    //                     date_confirm: date_confirm || new Date()
+    //                 }
+    //             },
+    //             { new: true } // retourne le document mis à jour
+    //         );
+
+    //         if (!result) {
+    //             throw new Error("Transaction non trouvée avec cet UUID");
+    //         }
+
+
+    //         // envoyer le mail de retrait approuver
+    //         // Email admin
+    //         sendMsg(
+    //             userEmail,
+    //             `New Withdrawal Request - ${coin.toUpperCase()}`,
+    //             templateMailWithdrawalApproved({
+    //                 amount,
+    //                 address,
+    //                 coinType,
+    //             })
+    //         );
+
+    //     } catch (err) {
+    //         console.error("Erreur lors de la mise à jour de la transaction :", err.message);
+    //         throw err;
+    //     }
+
+
+
+    // }
+
+
+
+
+};

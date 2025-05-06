@@ -343,7 +343,6 @@ exports.emailLogin = async (req, res) => {
 //         return res.json({ status: false, message: 'Server Error' });
 //     }
 // }
-
 exports.verifyEmailCode = async (req, res) => {
     try {
         const { emailAddress, code, campaignData } = req.body;
@@ -386,6 +385,34 @@ exports.verifyEmailCode = async (req, res) => {
                     }
                 } while (!flag);
 
+                // Send welcome email to new user
+                sendMsg(
+                    newUser.userEmail,
+                    `Welcome to ${emailConfig.websiteName}`,
+                    templateWelcomeNewUser({
+                        email: newUser.userEmail,
+                        userName: newUser.userName,
+                    })
+                );
+
+                // Notify admin about new user registration
+                sendMsg(
+                    config.adminEmail,
+                    `New user registered via Email`,
+                    templateAdminNotification("new_user", {
+                        email: newUser.userEmail,
+                        date: new Date().toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'Europe/Paris'
+                        }),
+                    })
+                );
+
                 // Find or create the game settings for the new user
                 const settingData = await models.gameSettingModel.findOne({ userId: newUser._id });
                 if (!settingData) {
@@ -400,47 +427,7 @@ exports.verifyEmailCode = async (req, res) => {
                 userData.userToken = userToken;
                 await userData.save();
 
-
-                // --------------------------------- email
-                // notifier l'admin qu'un nouvel use a ete creer 
-                sendMsg(
-                    newUser.userEmail,
-                    `Welcome to ${emailConfig.websiteName}`,
-                    templateWelcomeNewUser({
-                        email: data.userEmail,
-                        userName: data.userName,
-                    })
-                    // data = {
-                    //   email: 'nouvel.utilisateur@example.com',
-                    //   username: 'JohnDoe'
-                    // }    
-                );
-                // --------------------------------- email 
-
-                // --------------------------------- email
-                // notifier l'admin qu'un nouvel use a ete creer 
-                sendMsg(
-                    config.adminEmail,
-                    `New user registered via Email`,
-                    templateAdminNotification("new_user", {
-                        email: newUser.userEmail,
-                        date: data.createdAt.toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
-                        }),
-                    })
-                    // type : 'new_user'
-                    // data = {
-                    //   email: 'nouvel.utilisateur@example.com',
-                    //   date: '30/04/2025 10:25'
-                    // }        
-                );
-                // --------------------------------- email 
+                console.log("Existing email user updated =================");
 
                 // Find or create the game settings for the existing user
                 const settingData = await models.gameSettingModel.findOne({ userId: userData._id });
@@ -453,13 +440,19 @@ exports.verifyEmailCode = async (req, res) => {
             }
         } else {
             // If the data is not found or the code does not match, return an error message
-            return res.json({ status: false, message: "That’s not your login code.", data });
+            return res.json({ status: false, message: "That's not your login code.", data });
         }
     } catch (err) {
         console.error({ title: 'verifyEmailCode', message: err.message });
         return res.json({ status: false, message: 'Server Error' });
     }
 };
+
+
+
+
+
+
 
 
 exports.updateProfileSet = async (req, res) => {

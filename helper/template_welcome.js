@@ -6,10 +6,7 @@ exports.templateWelcomeNewUser = (data) => {
     <p>Hello ${data.username || 'dear player'},</p>
     <p>Welcome to <strong>${emailConfig.websiteName}</strong> — your new destination for fun, rewards, and real wins.</p>
     <p>Thousands of players are already hitting jackpots. Ready to join them?</p>
-    <ul>
-      <li><strong>Email:</strong> ${data.email}</li>
-    </ul>
-    <p>Log in now, grab your welcome bonus, and start playing!</p>
+      <p>Log in now, grab your welcome bonus, and start playing!</p>
     <p><strong>Big wins happen here.</strong></p>
     <p>The <strong>${emailConfig.websiteName}</strong> Team</p>
   `;

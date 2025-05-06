@@ -163,3 +163,9 @@ export const sendCrypto = async (data) => {
 	const response = await Config.Api.sendCrypto(data);
 	return response.data;
 }
+
+
+export const payoutCrypto = async (data) => {
+	const response = await Config.Api.payoutCrypto(data);
+	return response.data;
+}

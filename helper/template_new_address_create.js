@@ -1,8 +1,12 @@
-const emailConfig = require('./email-config');
+const config = require("../config");
+const emailConfig = require("./email-config");
 
 exports.templateSuccessCreateAddress = (address, coinType, minDeposit) => {
   const coin = coinType.toUpperCase();
+  const coinKey = coinType.toLowerCase();
+
   const title = `${coin} Deposit Address Successfully Created`;
+
 
   const messageBody = `
     <p>Dear user,</p>

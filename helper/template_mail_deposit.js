@@ -1,17 +1,35 @@
 const emailConfig = require('./email-config');
+const config = require('../config');
 
-exports.templateMailDepositStatus = (amount, address, coinType) => {
+exports.templateMailDepositStatus = ({ amount, address, coinType }) => {
+
+
+
+
+
   const coin = coinType.toUpperCase();
+
+  const coinKey = coinType?.toLowerCase();
+  const withdrawalConfig = config.configWithdraw[coinKey];
+
+
+  const precisionByCurrency = withdrawalConfig?.precision || 0;
+
+  const parsedAmount = parseFloat(amount);
+
+  const finalAmount = (parsedAmount).toFixed(precisionByCurrency);
+
+
   const title = `Deposit Successfully Completed`;
 
   const messageBody = `
     <p>Hello,</p>
-    <p>We have successfully confirmed your deposit of <strong>${amount} ${coin}</strong>.</p>
+    <p>We have successfully confirmed your deposit of <strong>${finalAmount} ${coin}</strong>.</p>
     <p>The funds are now available in your RockPlay account.</p>
 
     <p><strong>Transaction details:</strong></p>
     <ul>
-      <li><strong>Amount:</strong> ${amount} ${coin}</li>
+      <li><strong>Amount:</strong> ${finalAmount} ${coin}</li>
       <li><strong>Source address:</strong><br /><span style="word-break: break-all;">${address}</span></li>
       <li><strong>Status:</strong> <span style="color: green; font-weight: bold;">Confirmed</span></li>
     </ul>

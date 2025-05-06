@@ -1,3 +1,4 @@
+
 const isLocal = process.env.REACT_APP_MODE === 'dev' ? true : false;
 
 // console.log("App Mode = ", process.env.REACT_APP_MODE);
@@ -72,7 +73,8 @@ const Config = {
 
 
         getPendingWithdraws: '/getPendingWithdraws',
-        sendCrypto: '/sendCrypto'
+        sendCrypto: '/sendCrypto',
+        payoutCrypto: '/payoutCrypto'
     }
 };
 

@@ -18,36 +18,36 @@ const NativeData = {
 
 
 const createSubscription = async (data, subscriptionType = Tatum.SubscriptionType.ADDRESS_TRANSACTION) => {
-    const MAX_RETRIES = 5; // Nombre maximum de tentatives
-    let attempt = 0; // Compteur des tentatives
+    // const MAX_RETRIES = 5; // Nombre maximum de tentatives
+    // let attempt = 0; // Compteur des tentatives
 
-    while (attempt < MAX_RETRIES) {
-        try {
-            const { address, chain, url } = data;
-            const request = {
-                type: subscriptionType,
-                attr: {
-                    address,
-                    chain,
-                    url
-                }
-            };
+    // while (attempt < MAX_RETRIES) {
+    //     try {
+    //         const { address, chain, url } = data;
+    //         const request = {
+    //             type: subscriptionType,
+    //             attr: {
+    //                 address,
+    //                 chain,
+    //                 url
+    //             }
+    //         };
 
-            const response = await TatumAxios.post('/subscription', JSON.stringify(request));
-            return response.data; // Retourner la réponse si la requête réussit
-        } catch (err) {
-            attempt++;
-            console.error(`Tentative ${attempt} SUBSCRIPTION échouée:`, err.message);
+    //         const response = await TatumAxios.post('/subscription', JSON.stringify(request));
+    //         return response.data; // Retourner la réponse si la requête réussit
+    //     } catch (err) {
+    //         attempt++;
+    //         console.error(`Tentative ${attempt} SUBSCRIPTION échouée:`, err.message);
 
-            if (attempt >= MAX_RETRIES) {
-                console.error({ title: 'tatumController - createSubscription', message: 'Nombre maximum de tentatives atteint', error: err.message });
-                return null; // Retourner null après avoir atteint le nombre maximum de tentatives
-            }
+    //         if (attempt >= MAX_RETRIES) {
+    //             console.error({ title: 'tatumController - createSubscription', message: 'Nombre maximum de tentatives atteint', error: err.message });
+    //             return null; // Retourner null après avoir atteint le nombre maximum de tentatives
+    //         }
 
-            // Attendre 1 seconde avant la prochaine tentative
-            await new Promise(resolve => setTimeout(resolve, 5000));
-        }
-    }
+    //         // Attendre 1 seconde avant la prochaine tentative
+    //         await new Promise(resolve => setTimeout(resolve, 5000));
+    //     }
+    // }
 };
 
 
@@ -59,15 +59,15 @@ const getNetworkFromCoinType = (coinType) => {
 }
 
 const generatePrivateKey = async (data) => {
-    try {
-        const { mnemonic, index, chain } = data;
-        const response = await TatumAxios.post(`/${chain}/wallet/priv`, JSON.stringify({ index, mnemonic }));
-        return response.data;
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - generatePrivateKey', message: err.message });
-        return '';
-    }
+    // try {
+    //     const { mnemonic, index, chain } = data;
+    //     const response = await TatumAxios.post(`/${chain}/wallet/priv`, JSON.stringify({ index, mnemonic }));
+    //     return response.data;
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - generatePrivateKey', message: err.message });
+    //     return '';
+    // }
 }
 
 exports.getNativeData = async (data) => {
@@ -82,94 +82,94 @@ exports.getNativeData = async (data) => {
 }
 
 exports.createVirtualAccount = async (data) => {
-    try {
-        const { xpub, coinType } = data;
-        const request = {
-            currency: coinType,
-            xpub: xpub,
-            customer: {
-                accountingCurrency: 'USD',
-                customerCountry: 'US',
-                externalId: config.TATUM_OPTION[config.NETWORK].virtualAccount,
-                providerCountry: 'US'
-            },
-            compliant: true,
-            accountCode: config.TATUM_OPTION[config.NETWORK].virtualAccount,
-            accountingCurrency: 'USD',
-            accountNumber: config.TATUM_OPTION[config.NETWORK].virtualAccount
-        };
-        const response = await TatumAxios.post('/ledger/account', JSON.stringify(request));
-        return response.data;
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - createVirtualAccount', message: err.message });
-        return null;
-    }
+    // try {
+    //     const { xpub, coinType } = data;
+    //     const request = {
+    //         currency: coinType,
+    //         xpub: xpub,
+    //         customer: {
+    //             accountingCurrency: 'USD',
+    //             customerCountry: 'US',
+    //             externalId: config.TATUM_OPTION[config.NETWORK].virtualAccount,
+    //             providerCountry: 'US'
+    //         },
+    //         compliant: true,
+    //         accountCode: config.TATUM_OPTION[config.NETWORK].virtualAccount,
+    //         accountingCurrency: 'USD',
+    //         accountNumber: config.TATUM_OPTION[config.NETWORK].virtualAccount
+    //     };
+    //     const response = await TatumAxios.post('/ledger/account', JSON.stringify(request));
+    //     return response.data;
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - createVirtualAccount', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.getBalanceFromAccount = async (data) => {
-    try {
-        const { coinType } = data;
-        const keyName = `${coinType}WalletInfo`;
-        const accountInfo = await models.settingModel.findOne({ key: keyName });
-        if (accountInfo) {
-            const response = await TatumAxios.get(`/ledger/account/${accountInfo.dataObject.virtualAccount.id}/balance`);
-            return response.data;
-        }
-        else {
-            console.log({ title: 'tatumController - getAccountBalance', message: 'AccountInfo Null' });
-            return null;
-        }
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - getAccountBalance', message: err.message });
-        return null;
-    }
+    // try {
+    //     const { coinType } = data;
+    //     const keyName = `${coinType}WalletInfo`;
+    //     const accountInfo = await models.settingModel.findOne({ key: keyName });
+    //     if (accountInfo) {
+    //         const response = await TatumAxios.get(`/ledger/account/${accountInfo.dataObject.virtualAccount.id}/balance`);
+    //         return response.data;
+    //     }
+    //     else {
+    //         console.log({ title: 'tatumController - getAccountBalance', message: 'AccountInfo Null' });
+    //         return null;
+    //     }
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - getAccountBalance', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.getDepositAddressFromAccount = async (data) => {
 
-    const { coinType } = data;
+    // const { coinType } = data;
 
-    try {
+    // try {
 
-        const keyName = `${coinType === 'TRX' ? 'TRON' : coinType === 'BNB' ? 'BSC' : coinType}WalletInfo`;
-        const accountInfo = await models.settingModel.findOne({ key: keyName });
-        if (accountInfo) {
-            const chain = getNetworkFromCoinType(coinType);
+    //     const keyName = `${coinType === 'TRX' ? 'TRON' : coinType === 'BNB' ? 'BSC' : coinType}WalletInfo`;
+    //     const accountInfo = await models.settingModel.findOne({ key: keyName });
+    //     if (accountInfo) {
+    //         const chain = getNetworkFromCoinType(coinType);
 
-            const MAX_RETRIES = 5;
-            let attempt = 0;
-            let addressData;
+    //         const MAX_RETRIES = 5;
+    //         let attempt = 0;
+    //         let addressData;
 
-            while (attempt < MAX_RETRIES) {
-                try {
-                    addressData = await TatumAxios.post(`/offchain/account/${accountInfo.dataObject.virtualAccount.id}/address`);
-                    break; // Sortir de la boucle si la requête réussit
-                } catch (err) {
-                    attempt++;
-                    if (attempt >= MAX_RETRIES) {
-                        console.error('Nombre maximum de tentatives atteint pour obtenir l\'adresse', err.message);
-                        throw err;
-                    }
-                    console.log(`Tentative ${attempt} échouée, nouvelle tentative dans 5 secondes...`);
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                }
-            }
+    //         while (attempt < MAX_RETRIES) {
+    //             try {
+    //                 addressData = await TatumAxios.post(`/offchain/account/${accountInfo.dataObject.virtualAccount.id}/address`);
+    //                 break; // Sortir de la boucle si la requête réussit
+    //             } catch (err) {
+    //                 attempt++;
+    //                 if (attempt >= MAX_RETRIES) {
+    //                     console.error('Nombre maximum de tentatives atteint pour obtenir l\'adresse', err.message);
+    //                     throw err;
+    //                 }
+    //                 console.log(`Tentative ${attempt} échouée, nouvelle tentative dans 5 secondes...`);
+    //                 await new Promise(resolve => setTimeout(resolve, 5000));
+    //             }
+    //         }
 
-            const privateKey = await generatePrivateKey({ index: addressData.data.derivationKey, chain, mnemonic: accountInfo.dataObject.mnemonic });
+    //         const privateKey = await generatePrivateKey({ index: addressData.data.derivationKey, chain, mnemonic: accountInfo.dataObject.mnemonic });
 
-            // creer une souscription pour update le solde en cas de transaction depot ou retrait
-            await createSubscription({ url: config.SUBSCRIBE_URL, chain: addressData.data.currency, address: addressData.data.address });
-            return { ...addressData.data, ...privateKey };
-        } else {
-            console.log({ title: 'tatumController - getDepositAddressFromAccount', message: 'AccountInfo Null' });
-            return null;
-        }
-    } catch (err) {
-        console.error({ title: 'tatumController - getDepositAddressFromAccount', message: err.message });
-        return null;
-    }
+    //         // creer une souscription pour update le solde en cas de transaction depot ou retrait
+    //         await createSubscription({ url: config.SUBSCRIBE_URL, chain: addressData.data.currency, address: addressData.data.address });
+    //         return { ...addressData.data, ...privateKey };
+    //     } else {
+    //         console.log({ title: 'tatumController - getDepositAddressFromAccount', message: 'AccountInfo Null' });
+    //         return null;
+    //     }
+    // } catch (err) {
+    //     console.error({ title: 'tatumController - getDepositAddressFromAccount', message: err.message });
+    //     return null;
+    // }
 };
 
 
@@ -186,16 +186,16 @@ exports.getGasPrice = async (data) => {
 }
 
 exports.createBitcoinWallet = async () => {
-    // creation wallet depuis tatum
-    try {
-        const response = await TatumAxios.get('/bitcoin/wallet');
-        const { mnemonic, xpub } = response.data;
-        return { mnemonic, xpub };
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - createBitCoinAccount', message: err.message });
-        return null;
-    }
+    // // creation wallet depuis tatum
+    // try {
+    //     const response = await TatumAxios.get('/bitcoin/wallet');
+    //     const { mnemonic, xpub } = response.data;
+    //     return { mnemonic, xpub };
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - createBitCoinAccount', message: err.message });
+    //     return null;
+    // }
 }
 
 // exports.withdrawBTCFromAccount = async (data) => {
@@ -267,215 +267,215 @@ exports.createBitcoinWallet = async () => {
 
 
 exports.withdrawBTCFromAccount = async (data) => {
-    console.log("Tatum withdraw account");
+    // console.log("Tatum withdraw account");
 
-    try {
-        const { address, amount, myAddress, currency } = data;
+    // try {
+    //     const { address, amount, myAddress, currency } = data;
 
-        // Validate inputs
-        if (!address || !amount || isNaN(amount) || amount <= 0) {
-            return { error: 'Invalid address or amount provided.' };
-        }
+    //     // Validate inputs
+    //     if (!address || !amount || isNaN(amount) || amount <= 0) {
+    //         return { error: 'Invalid address or amount provided.' };
+    //     }
 
-        const keyName = `BTCWalletInfo`;
-        const accountInfo = await models.settingModel.findOne({ key: keyName });
+    //     const keyName = `BTCWalletInfo`;
+    //     const accountInfo = await models.settingModel.findOne({ key: keyName });
 
-        if (!accountInfo) {
-            console.error({ title: 'tatumController - withdrawBTCFromAccount', message: 'AccountInfo Null' });
-            return { error: 'Account information not found.' };
-        }
+    //     if (!accountInfo) {
+    //         console.error({ title: 'tatumController - withdrawBTCFromAccount', message: 'AccountInfo Null' });
+    //         return { error: 'Account information not found.' };
+    //     }
 
-        const fee = parseFloat(config.configWithdraw.btc.fee);
-        const minAmount = parseFloat(config.configWithdraw.btc.min);
-        const maxAmount = parseFloat(config.configWithdraw.btc.max);
+    //     const fee = parseFloat(config.configWithdraw.btc.fee);
+    //     const minAmount = parseFloat(config.configWithdraw.btc.min);
+    //     const maxAmount = parseFloat(config.configWithdraw.btc.max);
 
-        // Validate amount against min/max and fee requirements
-        const netAmount = amount - fee;
-        if (amount < minAmount || amount > maxAmount) {
-            return {
-                error: `Amount must be between ${minAmount} and ${maxAmount} BTC.`,
-            };
-        }
+    //     // Validate amount against min/max and fee requirements
+    //     const netAmount = amount - fee;
+    //     if (amount < minAmount || amount > maxAmount) {
+    //         return {
+    //             error: `Amount must be between ${minAmount} and ${maxAmount} BTC.`,
+    //         };
+    //     }
 
 
-        // Fetch account balance
-        const balanceResponse = await TatumAxios.get(`/ledger/account/${accountInfo.dataObject.virtualAccount.id}/balance`);
-        const currentBalance = parseFloat(balanceResponse.data.availableBalance);
+    //     // Fetch account balance
+    //     const balanceResponse = await TatumAxios.get(`/ledger/account/${accountInfo.dataObject.virtualAccount.id}/balance`);
+    //     const currentBalance = parseFloat(balanceResponse.data.availableBalance);
 
-        if (currentBalance < amount + fee) {
-            return {
-                error: `Insufficient balance. Available: ${currentBalance} BTC, Required: ${(amount + fee).toFixed(8)} BTC.`,
-            };
-        }
+    //     if (currentBalance < amount + fee) {
+    //         return {
+    //             error: `Insufficient balance. Available: ${currentBalance} BTC, Required: ${(amount + fee).toFixed(8)} BTC.`,
+    //         };
+    //     }
 
-        const request = {
-            senderAccountId: accountInfo.dataObject.virtualAccount.id,
-            address,
-            amount: amount.toFixed(8),
-            mnemonic: accountInfo.dataObject.mnemonic,
-            xpub: accountInfo.dataObject.xpub,
-            fee: fee.toFixed(8),
-        };
+    //     const request = {
+    //         senderAccountId: accountInfo.dataObject.virtualAccount.id,
+    //         address,
+    //         amount: amount.toFixed(8),
+    //         mnemonic: accountInfo.dataObject.mnemonic,
+    //         xpub: accountInfo.dataObject.xpub,
+    //         fee: fee.toFixed(8),
+    //     };
 
-        let response;
-        try {
-            response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
-            console.log("\nresponse = ", JSON.stringify(response));
-        } catch (e) {
-            console.error(
-                "\nError during BTC transfer request: ",
-                JSON.stringify(e.response ? e.response.data : e)
-            );
-            return {
-                error: e.response ? e.response.data.cause : e.message,
-            };
-        }
+    //     let response;
+    //     try {
+    //         response = await TatumAxios.post(`/offchain/bitcoin/transfer`, JSON.stringify(request));
+    //         console.log("\nresponse = ", JSON.stringify(response));
+    //     } catch (e) {
+    //         console.error(
+    //             "\nError during BTC transfer request: ",
+    //             JSON.stringify(e.response ? e.response.data : e)
+    //         );
+    //         return {
+    //             error: e.response ? e.response.data.cause : e.message,
+    //         };
+    //     }
 
-        if (response.data && response.data.completed) {
-            await new models.transactionModel({
-                accountId: accountInfo.dataObject.virtualAccount.id,
-                amount: Number(amount),
-                reference: '',
-                currency,
-                txId: response.data.txId,
-                from: myAddress,
-                to: address,
-                date: new Date(),
-                index: '',
-                subscriptionType: '#',
-            }).save();
+    //     if (response.data && response.data.completed) {
+    //         await new models.transactionModel({
+    //             accountId: accountInfo.dataObject.virtualAccount.id,
+    //             amount: Number(amount),
+    //             reference: '',
+    //             currency,
+    //             txId: response.data.txId,
+    //             from: myAddress,
+    //             to: address,
+    //             date: new Date(),
+    //             index: '',
+    //             subscriptionType: '#',
+    //         }).save();
 
-            return response.data;
-        } else {
-            return { error: 'Transaction could not be completed.' };
-        }
-    } catch (err) {
-        console.error({ title: 'tatumController - withdrawBTCFromAccount', message: err.message });
-        return { error: err.message };
-    }
+    //         return response.data;
+    //     } else {
+    //         return { error: 'Transaction could not be completed.' };
+    //     }
+    // } catch (err) {
+    //     console.error({ title: 'tatumController - withdrawBTCFromAccount', message: err.message });
+    //     return { error: err.message };
+    // }
 };
 
 
 
 exports.createEthereumWallet = async () => {
-    try {
-        const response = await TatumAxios.get('/ethereum/wallet');
-        const { mnemonic, xpub } = response.data;
-        return { mnemonic, xpub };
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - createEthereumAccount', message: err.message });
-        return null;
-    }
+    // try {
+    //     const response = await TatumAxios.get('/ethereum/wallet');
+    //     const { mnemonic, xpub } = response.data;
+    //     return { mnemonic, xpub };
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - createEthereumAccount', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.withdrawETHFromAccount = async (data) => {
-    try {
-        const { address, amount, derivationKey, myAddress, currency } = data;
-        const keyName = `ETHWalletInfo`;
-        const accountInfo = await models.settingModel.findOne({ key: keyName });
-        if (accountInfo) {
-            const request = {
-                senderAccountId: accountInfo.dataObject.virtualAccount.id,
-                address: address,
-                amount: Number(amount).toString(),
-                index: derivationKey,
-                mnemonic: accountInfo.dataObject.mnemonic,
-                fee: config.configWithdraw.eth.fee.toString()
+    // try {
+    //     const { address, amount, derivationKey, myAddress, currency } = data;
+    //     const keyName = `ETHWalletInfo`;
+    //     const accountInfo = await models.settingModel.findOne({ key: keyName });
+    //     if (accountInfo) {
+    //         const request = {
+    //             senderAccountId: accountInfo.dataObject.virtualAccount.id,
+    //             address: address,
+    //             amount: Number(amount).toString(),
+    //             index: derivationKey,
+    //             mnemonic: accountInfo.dataObject.mnemonic,
+    //             fee: config.configWithdraw.eth.fee.toString()
 
-            }
-            const response = await TatumAxios.post(`/offchain/ethereum/transfer`, JSON.stringify(request));
-            if (response.data.completed) {
-                await new models.transactionModel({
-                    accountId: accountInfo.dataObject.virtualAccount.id,
-                    amount: Number(amount),
-                    reference: '',
-                    currency: currency,
-                    txId: response.data.txId,
-                    from: myAddress,
-                    to: address,
-                    date: new Date(),
-                    index: '',
-                    subscriptionType: '#'
-                }).save();
-            }
-            return response.data;
-        }
-        else {
-            console.log({ title: 'tatumController - withdrawETHFromAccount', message: 'AccountInfo Null' });
-            return null;
-        }
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - withdrawETHFromAccount', message: err.message });
-        return null;
-    }
+    //         }
+    //         const response = await TatumAxios.post(`/offchain/ethereum/transfer`, JSON.stringify(request));
+    //         if (response.data.completed) {
+    //             await new models.transactionModel({
+    //                 accountId: accountInfo.dataObject.virtualAccount.id,
+    //                 amount: Number(amount),
+    //                 reference: '',
+    //                 currency: currency,
+    //                 txId: response.data.txId,
+    //                 from: myAddress,
+    //                 to: address,
+    //                 date: new Date(),
+    //                 index: '',
+    //                 subscriptionType: '#'
+    //             }).save();
+    //         }
+    //         return response.data;
+    //     }
+    //     else {
+    //         console.log({ title: 'tatumController - withdrawETHFromAccount', message: 'AccountInfo Null' });
+    //         return null;
+    //     }
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - withdrawETHFromAccount', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.createTronWallet = async () => {
-    try {
-        const response = await TatumAxios.get('/tron/wallet');
-        const { mnemonic, xpub } = response.data;
-        return { mnemonic, xpub };
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - createTronWallet', message: err.message });
-        return null;
-    }
+    // try {
+    //     const response = await TatumAxios.get('/tron/wallet');
+    //     const { mnemonic, xpub } = response.data;
+    //     return { mnemonic, xpub };
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - createTronWallet', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.withdrawTRONFromAccount = async (data) => {
-    try {
-        const { address, amount, derivationKey, myAddress, currency } = data;
-        const keyName = `TRONWalletInfo`;
-        const accountInfo = await models.settingModel.findOne({ key: keyName });
-        if (accountInfo) {
-            const request = {
-                senderAccountId: accountInfo.dataObject.virtualAccount.id,
-                address: address,
-                amount: Number(amount).toString(),
-                mnemonic: accountInfo.dataObject.mnemonic,
-                index: derivationKey,
-                fee: config.configWithdraw.trx.fee.toString()
-            }
-            const response = await TatumAxios.post(`/offchain/tron/transfer`, JSON.stringify(request));
-            if (response.data.completed) {
-                await new models.transactionModel({
-                    accountId: accountInfo.dataObject.virtualAccount.id,
-                    amount: Number(amount),
-                    reference: '',
-                    currency: currency,
-                    txId: response.data.txId,
-                    from: myAddress,
-                    to: address,
-                    date: new Date(),
-                    index: '',
-                    subscriptionType: '#'
-                }).save();
-            }
-            return response.data;
-        }
-        else {
-            console.log({ title: 'tatumController - withdrawTRONFromAccount', message: 'AccountInfo Null' });
-            return null;
-        }
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - withdrawTRONFromAccount', message: err.message });
-        return null;
-    }
+    // try {
+    //     const { address, amount, derivationKey, myAddress, currency } = data;
+    //     const keyName = `TRONWalletInfo`;
+    //     const accountInfo = await models.settingModel.findOne({ key: keyName });
+    //     if (accountInfo) {
+    //         const request = {
+    //             senderAccountId: accountInfo.dataObject.virtualAccount.id,
+    //             address: address,
+    //             amount: Number(amount).toString(),
+    //             mnemonic: accountInfo.dataObject.mnemonic,
+    //             index: derivationKey,
+    //             fee: config.configWithdraw.trx.fee.toString()
+    //         }
+    //         const response = await TatumAxios.post(`/offchain/tron/transfer`, JSON.stringify(request));
+    //         if (response.data.completed) {
+    //             await new models.transactionModel({
+    //                 accountId: accountInfo.dataObject.virtualAccount.id,
+    //                 amount: Number(amount),
+    //                 reference: '',
+    //                 currency: currency,
+    //                 txId: response.data.txId,
+    //                 from: myAddress,
+    //                 to: address,
+    //                 date: new Date(),
+    //                 index: '',
+    //                 subscriptionType: '#'
+    //             }).save();
+    //         }
+    //         return response.data;
+    //     }
+    //     else {
+    //         console.log({ title: 'tatumController - withdrawTRONFromAccount', message: 'AccountInfo Null' });
+    //         return null;
+    //     }
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - withdrawTRONFromAccount', message: err.message });
+    //     return null;
+    // }
 }
 
 exports.createBSCWallet = async () => {
-    try {
-        const response = await TatumAxios.get('/bsc/wallet');
-        const { mnemonic, xpub } = response.data;
-        return { mnemonic, xpub };
-    }
-    catch (err) {
-        console.error({ title: 'tatumController - createTronWallet', message: err.message });
-        return null;
-    }
+    // try {
+    //     const response = await TatumAxios.get('/bsc/wallet');
+    //     const { mnemonic, xpub } = response.data;
+    //     return { mnemonic, xpub };
+    // }
+    // catch (err) {
+    //     console.error({ title: 'tatumController - createTronWallet', message: err.message });
+    //     return null;
+    // }
 }
 
 // new add'
