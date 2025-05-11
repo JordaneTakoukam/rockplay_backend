@@ -26,9 +26,9 @@ exports.checkWinnerInfluenceScissors = (player, betAmount, coinType) => {
         2: { 0: 'win', 1: 'lost', 2: 'draw' },
     };
 
-    console.log(`WIN CHANCE = ${winChance}`);
-    console.log(`DRAW CHANCE = ${drawChance}`);
-    console.log(`LOST CHANCE = ${loseChance}`);
+    // console.log(`WIN CHANCE = ${winChance}`);
+    // console.log(`DRAW CHANCE = ${drawChance}`);
+    // console.log(`LOST CHANCE = ${loseChance}`);
 
     // Tirer un nombre aléatoire pour décider du résultat
     const numberPick = Math.random();
