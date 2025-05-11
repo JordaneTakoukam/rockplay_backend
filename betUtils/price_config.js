@@ -1,13 +1,22 @@
+const cryptoPrices = {
+    btc: 104674,     // Bitcoin (BTC)
+    eth: 2532.97,    // Ethereum (ETH)
+    bnb: 659.16,     // Binance Coin (BNB)
+    trx: 0.2627,     // TRON (TRX)
+    btc_ln: 104674,  // Bitcoin Lightning (même prix que BTC)
+    bch: 481,        // Bitcoin Cash (valeur estimée)
+    ltc: 97,         // Litecoin (valeur estimée)
+    doge: 0.18,      // Dogecoin (valeur estimée)
+    sol: 155,        // Solana (valeur estimée)
+    rp: 2.38,        // crypto of the game
+
+};
+
+
 module.exports = {
     // Prix des devises en USD 
     // Currency prices in USD
-    prices: {
-        btc: 97111,
-        eth: 3348,
-        bnb: 625,
-        trx: 0.21,
-        mup: 1,
-    },
+    prices: cryptoPrices,
 
     // Seuils de mise et chances de gagner 
     // Betting thresholds and chances to win
