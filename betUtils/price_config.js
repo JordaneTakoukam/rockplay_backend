@@ -8,7 +8,7 @@ const cryptoPrices = {
     ltc: 97,         // Litecoin (valeur estimée)
     doge: 0.18,      // Dogecoin (valeur estimée)
     sol: 155,        // Solana (valeur estimée)
-    rp: 2.38,        // crypto of the game
+    rp: 1,        // crypto of the game
 
 };
 
