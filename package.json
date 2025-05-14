@@ -20,8 +20,8 @@
   "turtle": "node turtlerace/TurtleService.js", 
   "mines": "node mines/MinesService.js",   
   "dice": "node dice/DiceService.js",  
-  "slot": "nodemon slot/SlotService.js",  
-  "plinko": "nodemon plinko/PlinkoService.js",   
+  "slot": "node slot/SlotService.js",  
+  "plinko": "node plinko/PlinkoService.js",   
   "crash": "node crash/CrashService.js"
   
   },
