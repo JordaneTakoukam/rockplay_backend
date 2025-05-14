@@ -12,7 +12,7 @@ const { v4: uuidv4 } = require('uuid');
 function influenceDice(DiceRound) {
   const originalGet = DiceRound.getDiceResult;
 
-  DiceRound.getDiceResult = async function(data, socket) {
+  DiceRound.getDiceResult = async function (data, socket) {
     const { userId, betAmount, coinType, difficulty, isOver } = data;
     const winChance = calculateWinChance(betAmount, coinType.coinType);
     console.log(`User ${userId} | Bet ${betAmount} ${coinType.coinType} | winChance=${winChance}`);
@@ -32,6 +32,11 @@ function influenceDice(DiceRound) {
 
       // Générer fairData cohérent avec un échec de pari
       const ChanceData = [
+        { over: 3, under: 11 },
+        { over: 4, under: 10 },
+        { over: 5, under: 9 },
+        { over: 6, under: 8 },
+
         { over: 7, under: 7 },
         { over: 8, under: 6 },
         { over: 9, under: 5 },

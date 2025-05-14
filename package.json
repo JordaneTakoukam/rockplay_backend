@@ -19,9 +19,9 @@
   "scissors": "node scissors/ScissorsService.js", 
   "turtle": "node turtlerace/TurtleService.js", 
   "mines": "node mines/MinesService.js",   
-  "dice": "nodemon dice/DiceService.js",  
-  "slot": "node slot/SlotService.js",  
-  "plinko": "node plinko/PlinkoService.js",   
+  "dice": "node dice/DiceService.js",  
+  "slot": "nodemon slot/SlotService.js",  
+  "plinko": "nodemon plinko/PlinkoService.js",   
   "crash": "node crash/CrashService.js"
   
   },
