@@ -16,8 +16,8 @@
   "chatroom": "node userchat/UserChatService.js",
   "manage": "node management/ManagementService.js",
 
-  "turtle": "node turtlerace/TurtleService.js", 
   "scissors": "node scissors/ScissorsService.js", 
+  "turtle": "nodemon turtlerace/TurtleService.js", 
   "mines": "node mines/MinesService.js",   
   "dice": "node dice/DiceService.js",  
   "slot": "node slot/SlotService.js",  

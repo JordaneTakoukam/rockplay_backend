@@ -1,35 +1,46 @@
 const { prices, betChances } = require('./price_config.js');
 
-// Fonction pour calculer les chances de gagner en fonction du montant parié en USD
-function calculateWinChance(betAmount, coinType) {
-    // Convertir le montant du pari dans la monnaie USD
-    let betAmountInUsd = parseFloat(betAmount);  // Assurez-vous que betAmount est un nombre, et non une chaîne
-    let chanceEnd = 0.05;  // 5% chance par défaut si aucun autre seuil n'est applicable
+const DEFAULT_CHANCE = 0.05;  // 5 % par défaut
 
-    // Convertir coinType en minuscules pour la comparaison
-    coinType = coinType ? coinType.toLowerCase() : '';
+/**
+ * Calcule la probabilité de gain en fonction du montant parié.
+ * Affiche des logs détaillés pour debug.
+ * @param {number|string} betAmount – montant du pari (en USD ou en coins si coinType fourni)
+ * @param {string} [coinType] – type de crypto (ex. "btc"), ou vide si pari en USD
+ * @returns {number} – probabilité (entre 0 et 1)
+ */
+function calculateWinChance(betAmount, coinType = '') {
 
-    // Vérifier si la devise est parmi celles avec un prix défini
-    if (coinType && prices[coinType]) {
-        betAmountInUsd *= prices[coinType];  // Conversion en USD en fonction du prix de la devise
+  // 1. Parsing et validation
+  let amount = Number(betAmount);
+  if (isNaN(amount) || amount < 0) {
+    console.error(`Montant invalide : ${betAmount}`);
+    throw new Error(`Montant invalide : ${betAmount}`);
+  }
+
+  // 2. Conversion en USD si nécessaire
+  coinType = coinType.toLowerCase();
+  let usdAmount = amount;
+  if (coinType && prices[coinType] != null) {
+    usdAmount = amount * prices[coinType];
+  } else {
+    console.log(`Pas de conversion crypto (on suppose déjà en USD): ${usdAmount} USD`);
+  }
+
+  // 3. Recherche de la tranche qui convient
+  let chanceResult = DEFAULT_CHANCE;
+  for (const { min, max, chance } of betChances) {
+    const inRange = usdAmount >= min && usdAmount < max;
+    if (inRange) {
+      chanceResult = chance;
+      break;
     }
+  }
 
-    // Trouver les chances de gagner en fonction du montant
-    for (let i = 0; i < betChances.length; i++) {
-        const { min, max, chance } = betChances[i];
-
-        // S'assurer que la valeur est dans la plage définie
-        if ((betAmountInUsd >= min) && (betAmountInUsd <= max)) {
-            chanceEnd = chance;
-        }
-    }
-
-    // console.log("prix en usd = ", betAmountInUsd);
-    // console.log("Chance = ", chanceEnd);
-    // console.log("coinType = ", coinType);
-    return chanceEnd;
+  console.log(`Chance finale renvoyée : ${chanceResult}\n`);
+  return chanceResult;
 }
 
-module.exports = {
-    calculateWinChance
-};
+module.exports = { calculateWinChance };
+
+
