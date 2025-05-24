@@ -5,7 +5,7 @@ module.exports = class ManageSocket {
     socket = null;
 
     constructor() {
-        this.socket = io.connect(DEV_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manage-services.minusplay.com`);
+        this.socket = io.connect(DEV_MODE ? `http://127.0.0.1:${MANAGEMENT_OPTION.port}` : `https://manages-services.rockplay.fun`);
         this.bind();
     }
 
