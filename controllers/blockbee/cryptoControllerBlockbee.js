@@ -219,7 +219,7 @@ exports.webHookDeposit = async (req, res) => {
                 // -------------- notifier l'admin qu'un nouveau user a fait un depot
                 sendMsg(
                     config.adminEmail,
-                    `Ne Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
+                    `New Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',

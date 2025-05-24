@@ -14,7 +14,7 @@ module.exports = {
             interval: 1.0
         },
         runRound: {
-            time: 10.0
+            time: 6.0
         },
         completeRound: {
             time: 2.0
