@@ -79,23 +79,23 @@ const configWithdraw = {
 const depositBonuns = {
   // usd value
   bonus1: {
-    min: 30,
-    max: 300,
+    min: 3.0, // 30
+    max: 5.9, //59
     pourcetage: 270,
   },
-  bonus1: {
-    min: 60,
-    max: 300,
+  bonus2: {
+    min: 6.0, // 60
+    max: 11.90, // 119
     pourcetage: 300,
   },
-  bonus1: {
-    min: 120,
-    max: 300,
+  bonus3: {
+    min: 12.0, // 120
+    max: 14.90, // 149
     pourcetage: 330,
   },
-  bonus1: {
-    min: 150,
-    max: 300,
+  bonus4: {
+    min: 15.0, // 150
+    max: 17.9, // 180
     pourcetage: 360,
   },
 };

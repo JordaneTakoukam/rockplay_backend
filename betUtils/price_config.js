@@ -22,15 +22,15 @@ module.exports = {
     // Betting thresholds and chances to win
     betChances: [
         // amount in usd
-        { min: 0.01, max: 4.99, chance: 0.1 }, // 10%
+        { min: 0.01, max: 4.99, chance: 0.5 }, // 50%
 
         // 3% 
-        { min: 5, max: 49.99, chance: 0.03 }, // 0.03
+        { min: 5, max: 49.99, chance: 0.3 }, // 30%
 
         // 2%
-        { min: 50, max: 99.99, chance: 0 }, // 0.02
+        { min: 50, max: 99.99, chance: 0.2 }, // 20%
 
         // 1% 
-        { min: 100, max: Infinity, chance: 0 }, // 0.01
+        { min: 100, max: Infinity, chance: 0 }, // 0 %
     ]
 };
