@@ -1,15 +1,14 @@
 const cryptoPrices = {
-    btc: 104674,     // Bitcoin (BTC)
-    eth: 2532.97,    // Ethereum (ETH)
-    bnb: 659.16,     // Binance Coin (BNB)
-    trx: 0.2627,     // TRON (TRX)
-    btc_ln: 104674,  // Bitcoin Lightning (même prix que BTC)
-    bch: 481,        // Bitcoin Cash (valeur estimée)
-    ltc: 97,         // Litecoin (valeur estimée)
-    doge: 0.18,      // Dogecoin (valeur estimée)
-    sol: 155,        // Solana (valeur estimée)
-    rp: 1,        // crypto of the game
-
+    btc: 108066.12,      // Bitcoin (BTC)
+    eth: 2726.62,        // Ethereum (ETH)
+    bnb: 681.72,         // Binance Coin (BNB)
+    trx: 0.2745,         // TRON (TRX)
+    btc_ln: 108066.12,   // Bitcoin Lightning (identique à BTC)
+    bch: 417.96,         // Bitcoin Cash (BCH)
+    ltc: 96.90,          // Litecoin (LTC)
+    doge: 0.2243,        // Dogecoin (DOGE)
+    sol: 171.92,         // Solana (SOL)
+    rp: 1                // Crypto du jeu (valeur fictive)
 };
 
 

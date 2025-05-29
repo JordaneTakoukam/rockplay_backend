@@ -15,9 +15,10 @@ const ModelSchema = mongoose.Schema({
     subscriptionType: { type: String, default: '' }, // Type d'abonnement associé
     currency: { type: Object }, // {coinType, type} - Détails de la crypto-monnaie
     uuid: { type: String, default: '' }, // Identifiant unique universel
-    type_transaction: { type: String, default: '' }, // Type: 'deposit' ou 'withdraw'
+    type_transaction: { type: String, default: '' }, // Type: 'deposit' ou 'withdraw' ou  'bonus'
     pending: { type: Number, default: -1 }, // Statut pending (1 = en attente, 0 = confirmé)
     withdraw_request: { type: Number, default: -1 }, // Demande de retrait (1 = en attente, 0 = crédité)
+    bonus_processed: { type: Boolean, default: false }, // Demande de retrait (1 = en attente, 0 = crédité)
 
 }, { autoIndex: true, timestamps: true });
 

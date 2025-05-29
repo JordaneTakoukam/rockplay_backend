@@ -76,29 +76,29 @@ const configWithdraw = {
 };
 
 
-const depositBonuns = {
-  // usd value
-  bonus1: {
-    min: 3.0, // 30
-    max: 5.9, //59
-    pourcetage: 270,
+const depositBonuns = [
+  {
+    min: 10.0,      // 10 $
+    max: 29.9,      // 29.9 $
+    pourcentage: 120,
   },
-  bonus2: {
-    min: 6.0, // 60
-    max: 11.90, // 119
-    pourcetage: 300,
+  {
+    min: 30.0,      // 30 $
+    max: 49.9,      // 49.9 $
+    pourcentage: 150,
   },
-  bonus3: {
-    min: 12.0, // 120
-    max: 14.90, // 149
-    pourcetage: 330,
+  {
+    min: 50.0,      // 50 $
+    max: 79.9,      // 79.9 $
+    pourcentage: 180,
   },
-  bonus4: {
-    min: 15.0, // 150
-    max: 17.9, // 180
-    pourcetage: 360,
+  {
+    min: 80.0,      // 80 $
+    max: 99.9,      // 99.9 $
+    pourcentage: 200,
   },
-};
+];
+
 
 
 module.exports = {
@@ -130,13 +130,13 @@ module.exports = {
   },
 
   SUBSCRIBE_URL:
-    DEV_MODE ? "https://33e6-109-245-95-235.ngrok-free.app/api/v0/payment/webhook-handler" :
+    DEV_MODE ? "https://0392-109-245-36-21.ngrok-free.app/api/v0/payment/webhook-handler" :
       "https://api-root.rockplay.fun/api/v0/payment/webhook-handler",
 
 
 
   DEV_MODE,
   configWithdraw,
-  depositBonuns,
   adminEmail: process.env.ADMIN_EMAIL,
+  depositBonuns,
 };

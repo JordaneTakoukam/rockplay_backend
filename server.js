@@ -6,17 +6,20 @@ const app = express();
 const server = http.Server(app);
 const config = require('./config');
 require('dotenv').config({ path: __dirname + '/.env' });
+require('./cron/cron-job');
+
+
 
 const initController = require('./controllers/initController');
 
 
 const corsOptions = {
-  origin: ["http://localhost:8800", "http://localhost:3000", "https://rockplay.fun", "https://admin.rockplay.fun",],
-  credentials: true,
-  allowedHeaders: ["sessionId", "content-type", "Authorization"],
-  exposedHeaders: ["sessionId"],
-  methods: "GET, POST, PUT, DELETE , UPDATE, PATCH",
-  preflightContinue: false,
+    origin: ["http://localhost:8800", "http://localhost:3000", "https://rockplay.fun", "https://admin.rockplay.fun",],
+    credentials: true,
+    allowedHeaders: ["sessionId", "content-type", "Authorization"],
+    exposedHeaders: ["sessionId"],
+    methods: "GET, POST, PUT, DELETE , UPDATE, PATCH",
+    preflightContinue: false,
 };
 app.use(cors(corsOptions));
 
@@ -36,13 +39,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', express.static('./public'));
 
 const models = require('./models/index');
+const { handleDepositBonus } = require('./controllers/blockbee/depositBonusHandler');
 models.mongoose.connect(config.DB)
-    .then(() => {
+    .then(async () => {
         console.log('server connected to mongodb successfully');
-        // initController.initTatumBTC();
-        // initController.initTatumETH();
-        // initController.initTatumTRX();
-        // initController.initTatumBSC();
+
+
+
+
     })
     .catch((err) => {
         console.error({ title: 'mongodb connection error', message: err.message });
@@ -54,4 +58,8 @@ app.get('/', (req, res) => {
     res.json('Welcome to api root backend.')
 });
 app.use('/', require('./middleware/index'), require('./routes/index'));
+
+
+
+
 server.listen(config.SERVER_PORT, () => { console.log(`server started on ${config.SERVER_PORT} port`) });

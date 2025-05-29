@@ -6,9 +6,8 @@ exports.templateWelcomeNewUser = (data) => {
     <p>Hello ${data.username || 'dear player'},</p>
     <p>Welcome to <strong>${emailConfig.websiteName}</strong> — your new destination for fun, rewards, and real wins.</p>
     <p>Thousands of players are already hitting jackpots. Ready to join them?</p>
-    <p><strong>🎁 Enjoy up to 300% bonus on your 1st deposit — no matter the amount!</strong></p>
-    <p><strong>💰 Plus, get a 200% bonus on your 2nd deposit!</strong></p>
-    <p>Log in now, grab your welcome bonus, and start playing!</p>
+    <p><strong>🎁 Win up to 200% bonus on your deposits</strong></p>
+    <p>Log in now, grab your bonus, and start playing!</p>
     <p><strong>Big wins happen here.</strong></p>
     <p>The <strong>${emailConfig.websiteName}</strong> Team</p>
   `;

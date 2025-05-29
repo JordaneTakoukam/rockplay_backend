@@ -10,6 +10,7 @@ const { cryptoAddressValidator } = require('../../betUtils/validate_crypto_addre
 const { templateWihdrawInit } = require('../../helper/template_init_withdraw');
 const { templateAdminPendingWithdraw } = require('../../helper/template_admin_pending_withdraw');
 const { templateMailWithdrawalApproved } = require('../../helper/template_mail_approuved');
+const { handleDepositBonus } = require('./depositBonusHandler');
 
 
 // generer une adresse de depot 
@@ -46,15 +47,17 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
 
 
                 if (emailUser) {
-                    console.log(`send email deposit address = ${response.address_in}, ${coinType}, ${response.minimum_transaction_coin}`);
+                    console.log(`SUCCESS ${coinType} adress created !\n`);
+
+                    // console.log(`send email deposit address = ${response.address_in}, ${coinType}, ${response.minimum_transaction_coin}`);
                     var minDeposit = config.configWithdraw[coinType.toLowerCase()].minDeposit;
 
                     // Envoi d'un message au client pour l'informer que son adresse a été créée avec succès
                     try {
-                        console.log(`emailUser = ${emailUser}`);
-                        console.log(`address_in = ${response.address_in}`);
-                        console.log(`coinType = ${coinType}`);
-                        console.log(`minDeposit = ${minDeposit}`);
+                        // console.log(`emailUser = ${emailUser}`);
+                        // console.log(`address_in = ${response.address_in}`);
+                        // console.log(`coinType = ${coinType}`);
+                        // console.log(`minDeposit = ${minDeposit}`);
 
                         sendMsg(
                             emailUser,
@@ -88,32 +91,217 @@ exports.getClientDepositBlockbeeAddress = async (req, res) => {
 
 
 // 
+// exports.webHookDeposit = async (req, res) => {
+//     // Récupération de l'ID de l'utilisateur depuis les paramètres de l'URL
+//     const { user_id } = req.query;
+
+//     try {
+//         // Extraction des paramètres de BlockBee depuis le body de la requête
+//         const {
+//             uuid,             // Identifiant unique de la transaction
+//             address_in,       // Adresse générée par BlockBee (cible de dépôt)
+//             address_out,      // Adresse(s) de redirection de paiement
+//             txid_in,          // Hash de la transaction de paiement du client
+//             txid_out,         // (Optionnel) Hash de la transaction de sortie (confirmation)
+//             confirmations,    // Nombre de confirmations
+//             value_coin,       // Montant envoyé par le client avant déduction des frais
+//             coin,             // Ticker de la crypto (ex: btc, erc20_usdt, etc.)
+//             price,            // Prix de la coin en USD au moment du callback
+//             fee_coin,         // (Optionnel) Frais de transaction
+//             pending           // 1 pour callback pending, 0 pour confirmation success
+//         } = req.body;
+
+
+//         var value_coin_number = parseFloat(value_coin);  // Convertir en nombre à virgule flottante (double)
+//         var fee_coin_number = parseFloat(fee_coin);      // Convertir en nombre à virgule flottante (double)
+//         var creditAmount = value_coin_number - fee_coin_number;
+
+//         // Détermination de la devise en fonction du paramètre "coin"
+//         let currency = { coinType: '', type: '' };
+//         if (coin.includes('_')) {
+//             const parts = coin.split('_');
+//             const prefix = parts[0];
+//             const ticker = parts[1].toUpperCase();
+//             let tokenType = "";
+//             if (prefix === "erc20") tokenType = "ERC20";
+//             else if (prefix === "trc20") tokenType = "TRC20";
+//             else if (prefix === "bep20") tokenType = "BEP20";
+//             else if (prefix === "polygon") tokenType = "Polygon";
+//             currency = { coinType: ticker.toUpperCase(), type: tokenType.toLowerCase() };
+//         } else {
+//             currency = { coinType: coin.toUpperCase(), type: 'native' };
+//         }
+
+//         if (pending == 0) {
+
+//             // Pour confirmation, on met à jour la transaction existante
+//             let txData = await models.transactionModel.findOne({ uuid });
+//             if (txData) {
+//                 // Mise à jour des informations de la transaction (confirmations, flag pending, etc.)
+//                 txData.confirmations = confirmations;
+//                 txData.pending = pending; // Passage à 0 (confirmé)
+//                 if (txid_out) txData.txId_out = txid_out;
+//                 if (fee_coin) txData.fee_coin = fee_coin;
+//                 txData = await txData.save();
+//                 // console.log("Transaction existante, mise à jour:", txData);
+//             } else {
+//                 // Création d'une nouvelle transaction en cas d'absence de transaction existante
+//                 var depositDate = new Date();
+
+
+//                 const transaction = await new models.transactionModel({
+//                     userId: user_id,
+//                     uuid,
+//                     txId: txid_in,
+//                     txId_out: txid_out,
+//                     amount: creditAmount,
+//                     from: address_out,
+//                     to: address_in,
+//                     date: depositDate,
+//                     confirmations,
+//                     price: price,
+//                     fee_coin: fee_coin,
+//                     currency,
+//                     pending,
+//                     type_transaction: "deposit"
+//                 }).save();
+
+//                 // Récupération de l'utilisateur pour obtenir son email
+//                 const user = await models.userModel.findOne({ _id: user_id });
+//                 const emailUser = user ? user.userEmail : null;
+
+
+//                 // Mise à jour du solde de l'utilisateur basé sur l'adresse_in
+//                 let walletData = await models.walletModel.findOne({ address: address_in });
+//                 if (walletData) {
+//                     let userData = await models.userModel.findOne({ _id: walletData.userId });
+//                     let balanceEntry = userData.balance.data.find((data) =>
+//                         data.coinType === currency.coinType && data.type.toLowerCase() === currency.type.toLowerCase()
+//                     );
+//                     if (balanceEntry) {
+//                         // console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
+//                         balanceEntry.balance = Number(balanceEntry.balance || 0) + Number(creditAmount);
+//                         // console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
+//                     } else {
+//                         console.log("Aucune entrée de solde trouvée pour cette devise. Création d'une nouvelle entrée.");
+//                         userData.balance.data.push({ coinType: currency.coinType, balance: Number(creditAmount), type: currency.type.toLowerCase(), chain: 'NEW CHAIN CREATE' });
+//                     }
+//                     await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
+//                     // console.log("Solde mis à jour pour l'utilisateur:", walletData.userId, 'solde = ', creditAmount);
+//                 } else {
+//                     console.log("Aucune donnée de wallet trouvée pour address_in:", address_in);
+//                 }
+
+//                 // -------------- notifier le user que sont compte vient d'etre crediter du montant - frais
+//                 if (emailUser) {
+//                     // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
+//                     sendMsg(
+//                         emailUser,
+//                         `Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
+//                             day: '2-digit',
+//                             month: 'short',
+//                             year: 'numeric',
+//                             hour: '2-digit',
+//                             minute: '2-digit',
+//                             hour12: false,
+//                             timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
+//                         })} `,
+//                         templateMailDepositStatus(
+//                             {
+//                                 amount: creditAmount,
+//                                 address: address_in,
+//                                 coinType: currency.coinType,
+//                             }
+//                         ),
+//                         // amount, address, coinType
+//                     );
+//                     // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
+//                 }
+
+
+//                 // -------------- notifier l'admin qu'un nouveau user a fait un depot
+//                 sendMsg(
+//                     config.adminEmail,
+//                     `New Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
+//                         day: '2-digit',
+//                         month: 'short',
+//                         year: 'numeric',
+//                         hour: '2-digit',
+//                         minute: '2-digit',
+//                         hour12: false,
+//                         timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
+//                     })} `,
+//                     templateAdminNotification("new_deposit", {
+//                         amount: creditAmount,
+//                         coinType: currency.coinType,
+//                         address: address_in,
+//                         status: 0,
+//                         email: emailUser,
+//                         date: depositDate.toLocaleString('en-GB', {
+//                             day: '2-digit',
+//                             month: 'short',
+//                             year: 'numeric',
+//                             hour: '2-digit',
+//                             minute: '2-digit',
+//                             hour12: false,
+//                             timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
+//                         }),
+//                     })
+//                 );
+//             }
+
+
+//             // =============== gerer le bonus ici ==============: 
+
+//             //     await handleDepositBonus({
+//             //         user_id,
+//             //         montantDeposer: creditAmount,
+//             //         price,          // prix du token en USD
+//             //         currency,       // ex: { coinType: "USDT", type: "ERC20" }
+//             //         emailUser,
+//             //     });
+
+
+//             console.log("TOUT EST OK");
+
+
+
+
+//             return res.send({ message: "Success payment confirmed" });
+//         } else {
+//             console.log("Valeur de 'pending' inconnue reçue:", pending);
+//             return res.status(400).send({ message: "Invalid pending value" });
+//         }
+//     } catch (err) {
+//         console.error({ title: 'error - webHookDeposit', message: err.message });
+//         return res.status(500).json({ status: false, data: null, message: 'Server Error' });
+//     }
+// };
+
+
+
+
+
+
+
+
+
+
+
 exports.webHookDeposit = async (req, res) => {
-    // Récupération de l'ID de l'utilisateur depuis les paramètres de l'URL
     const { user_id } = req.query;
 
     try {
-        // Extraction des paramètres de BlockBee depuis le body de la requête
         const {
-            uuid,             // Identifiant unique de la transaction
-            address_in,       // Adresse générée par BlockBee (cible de dépôt)
-            address_out,      // Adresse(s) de redirection de paiement
-            txid_in,          // Hash de la transaction de paiement du client
-            txid_out,         // (Optionnel) Hash de la transaction de sortie (confirmation)
-            confirmations,    // Nombre de confirmations
-            value_coin,       // Montant envoyé par le client avant déduction des frais
-            coin,             // Ticker de la crypto (ex: btc, erc20_usdt, etc.)
-            price,            // Prix de la coin en USD au moment du callback
-            fee_coin,         // (Optionnel) Frais de transaction
-            pending           // 1 pour callback pending, 0 pour confirmation success
+            uuid, address_in, address_out, txid_in, txid_out, confirmations,
+            value_coin, coin, price, fee_coin, pending
         } = req.body;
 
+        let value_coin_number = parseFloat(value_coin);
+        let fee_coin_number = parseFloat(fee_coin || 0);
+        let creditAmount = value_coin_number - fee_coin_number;
 
-        var value_coin_number = parseFloat(value_coin);  // Convertir en nombre à virgule flottante (double)
-        var fee_coin_number = parseFloat(fee_coin);      // Convertir en nombre à virgule flottante (double)
-        var creditAmount = value_coin_number - fee_coin_number;
-
-        // Détermination de la devise en fonction du paramètre "coin"
+        // Détermination de la devise
         let currency = { coinType: '', type: '' };
         if (coin.includes('_')) {
             const parts = coin.split('_');
@@ -129,24 +317,26 @@ exports.webHookDeposit = async (req, res) => {
             currency = { coinType: coin.toUpperCase(), type: 'native' };
         }
 
-        if (pending == 0) {
+        // Charger l'utilisateur une seule fois ici pour éviter problème de portée
+        let emailUser = null;
+        if (user_id) {
+            const user = await models.userModel.findOne({ _id: user_id });
+            emailUser = user ? user.userEmail : null;
+        }
 
-            // Pour confirmation, on met à jour la transaction existante
+        if (pending == 0) {
             let txData = await models.transactionModel.findOne({ uuid });
+
             if (txData) {
-                // Mise à jour des informations de la transaction (confirmations, flag pending, etc.)
                 txData.confirmations = confirmations;
-                txData.pending = pending; // Passage à 0 (confirmé)
+                txData.pending = pending;
                 if (txid_out) txData.txId_out = txid_out;
                 if (fee_coin) txData.fee_coin = fee_coin;
-                txData = await txData.save();
-                // console.log("Transaction existante, mise à jour:", txData);
+                await txData.save();
             } else {
-                // Création d'une nouvelle transaction en cas d'absence de transaction existante
-                var depositDate = new Date();
+                const depositDate = new Date();
 
-
-                const transaction = await new models.transactionModel({
+                await new models.transactionModel({
                     userId: user_id,
                     uuid,
                     txId: txid_in,
@@ -156,122 +346,87 @@ exports.webHookDeposit = async (req, res) => {
                     to: address_in,
                     date: depositDate,
                     confirmations,
-                    price: price,
-                    fee_coin: fee_coin,
+                    price,
+                    fee_coin,
                     currency,
                     pending,
                     type_transaction: "deposit"
                 }).save();
 
-                // Récupération de l'utilisateur pour obtenir son email
-                const user = await models.userModel.findOne({ _id: user_id });
-                const emailUser = user ? user.userEmail : null;
-
-
-                // Mise à jour du solde de l'utilisateur basé sur l'adresse_in
-                let walletData = await models.walletModel.findOne({ address: address_in });
+                // Mise à jour du solde utilisateur
+                const walletData = await models.walletModel.findOne({ address: address_in });
                 if (walletData) {
-                    let userData = await models.userModel.findOne({ _id: walletData.userId });
-                    let balanceEntry = userData.balance.data.find((data) =>
-                        data.coinType === currency.coinType && data.type.toLowerCase() === currency.type.toLowerCase()
-                    );
-                    if (balanceEntry) {
-                        // console.log("Entrée de solde existante trouvée. Ancien solde:", balanceEntry.balance);
-                        balanceEntry.balance = Number(balanceEntry.balance || 0) + Number(creditAmount);
-                        // console.log("Nouveau solde pour", currency.coinType, ":", balanceEntry.balance);
-                    } else {
-                        console.log("Aucune entrée de solde trouvée pour cette devise. Création d'une nouvelle entrée.");
-                        userData.balance.data.push({ coinType: currency.coinType, balance: Number(creditAmount), type: currency.type.toLowerCase(), chain: 'NEW CHAIN CREATE' });
+                    const userData = await models.userModel.findOne({ _id: walletData.userId });
+                    if (userData) {
+                        let balanceEntry = userData.balance.data.find(d =>
+                            d.coinType === currency.coinType && d.type.toLowerCase() === currency.type.toLowerCase()
+                        );
+                        if (balanceEntry) {
+                            balanceEntry.balance = Number(balanceEntry.balance || 0) + Number(creditAmount);
+                        } else {
+                            userData.balance.data.push({
+                                coinType: currency.coinType,
+                                balance: Number(creditAmount),
+                                type: currency.type.toLowerCase(),
+                                chain: 'NEW CHAIN CREATE'
+                            });
+                        }
+                        await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
                     }
-                    await models.userModel.findOneAndUpdate({ _id: walletData.userId }, { balance: userData.balance });
-                    // console.log("Solde mis à jour pour l'utilisateur:", walletData.userId, 'solde = ', creditAmount);
                 } else {
                     console.log("Aucune donnée de wallet trouvée pour address_in:", address_in);
                 }
 
-                // -------------- notifier le user que sont compte vient d'etre crediter du montant - frais
+                // Notifier utilisateur (uniquement si emailUser défini)
                 if (emailUser) {
-                    // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
                     sendMsg(
                         emailUser,
-                        `Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
-                        })} `,
-                        templateMailDepositStatus(
-                            {
-                                amount: creditAmount,
-                                address: address_in,
-                                coinType: currency.coinType,
-                            }
-                        ),
-                        // amount, address, coinType
+                        `Deposit confirmed - ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/Paris' })}`,
+                        templateMailDepositStatus({
+                            amount: creditAmount,
+                            address: address_in,
+                            coinType: currency.coinType,
+                        }),
                     );
-                    // -------------------------------- Envoi du message à l'adresse email de l'utilisateur
                 }
 
-
-                // -------------- notifier l'admin qu'un nouveau user a fait un depot
+                // Notifier admin
                 sendMsg(
                     config.adminEmail,
-                    `New Deposit confirmed - ${depositDate.toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                        timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
-                    })} `,
+                    `New Deposit confirmed - ${new Date().toLocaleString('en-GB', { timeZone: 'Europe/Paris' })}`,
                     templateAdminNotification("new_deposit", {
                         amount: creditAmount,
                         coinType: currency.coinType,
                         address: address_in,
                         status: 0,
                         email: emailUser,
-                        date: depositDate.toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Europe/Paris' // Ajustez selon le fuseau horaire du serveur
-                        }),
+                        date: new Date().toLocaleString('en-GB', { timeZone: 'Europe/Paris' }),
                     })
-                    // type : 'new_deposit'
-                    // data = {
-                    //   amount: 250,
-                    //   coinType: 'USDT',
-                    //   address: '0x123abc456def789...',
-                    //   status: 0, // 0 = confirmé, 1 = en attente
-                    //   date: '30/04/2025 11:12',
-                    //   email: 'user@example.com' // ajout de l'email de l'utilisateur
-                    // }
-
                 );
-
-
             }
 
-
+            // Gestion bonus ici (si nécessaire)
+            await handleDepositBonus({
+                user_id,
+                montantDeposer: creditAmount,
+                price,
+                currency,
+                emailUser,
+            });
 
             return res.send({ message: "Success payment confirmed" });
         } else {
-            console.log("Valeur de 'pending' inconnue reçue:", pending);
             return res.status(400).send({ message: "Invalid pending value" });
         }
+
     } catch (err) {
-        console.error({ title: 'error - cryptoController - blockbeeWebhook', message: err.message });
-        return res.status(500).json({ status: false, data: null, message: 'Server Error' });
+        console.error({ title: 'error - webHookDeposit', message: err.message });
+        // Assurer qu'on n'a pas déjà envoyé une réponse avant d'envoyer l'erreur
+        if (!res.headersSent) {
+            return res.status(500).json({ status: false, data: null, message: 'Server Error' });
+        }
     }
 };
-
 
 
 
@@ -290,8 +445,147 @@ exports.webHookDeposit = async (req, res) => {
 // 
 //  Retrait Bitcoin
 // Fonction pour initialiser une demande de retrait en créant une transaction pending
-exports.initWithDrawClient = async (req, res) => {
+// exports.initWithDrawClient = async (req, res) => {
 
+//     const { coinType, amount, address, userId } = req.body;
+//     const coinKey = coinType?.toLowerCase();
+
+//     // 1. Validation des champs requis
+//     if (!userId || !amount || !address || !coinType) {
+//         return res.status(400).json({ error: 'Please fill all required fields' });
+//     }
+
+//     // 2. Validation du format de l'adresse
+//     if (!cryptoAddressValidator(coinKey, address)) {
+//         return res.status(400).json({ error: `Invalid ${coinType.toUpperCase()} address format` });
+//     }
+
+//     // Récupération utilisateur avec population du solde
+//     const user = await models.userModel.findById(userId);
+//     if (!user) return res.status(404).json({ error: 'User not found' });
+
+
+//     // Vérifier s'il existe déjà une demande de retrait en attente
+//     const existingPendingWithdraw = await models.transactionModel.findOne({
+//         userId,
+//         type_transaction: "withdraw",
+//         withdraw_request: 1
+//     });
+
+//     if (existingPendingWithdraw) {
+//         return res.status(400).json({
+//             error: "You already have a pending withdrawal request. Please wait until it is processed before making another."
+//         });
+//     }
+
+//     // Vérification solde
+//     const balanceEntry = user.balance.data.find(e => e.coinType.toUpperCase() === coinType.toUpperCase());
+//     if (!balanceEntry) return res.status(400).json({ error: `${coinType} balance not found` });
+//     //balance = {"coinType":"BNB","chain":"BNB","type":"bep20","balance":0.0076490408}
+
+//     const availableBalance = Number(balanceEntry.balance);
+//     const withdrawalAmount = Number(amount);
+//     const withdrawConfig = config.configWithdraw[coinKey];
+//     // pour le bnb Withdraw Config: { fee: 0.000085, min: 0.002, max: 0.5, precision: 5 }
+
+
+//     // fait cette verification ici
+
+//     // on ne doit pas pouvoir faire de retrait si on a un bonus qui est actif et non expirer
+//     // le bonus est actif quand 24h ne s'est pas encore ecouler depuis sa date d'emission
+
+
+
+
+
+
+//     // Validations montants
+//     if (withdrawalAmount < withdrawConfig.min) {
+//         return res.status(400).json({ error: `Minimum withdrawal: ${withdrawConfig.min.toFixed(withdrawConfig.precision)} ${coinType}` });
+//     }
+//     if (withdrawalAmount > withdrawConfig.max) {
+//         return res.status(400).json({ error: `Maximum withdrawal: ${withdrawConfig.max.toFixed(withdrawConfig.precision)} ${coinType}` });
+//     }
+//     if (withdrawalAmount > availableBalance) {
+//         return res.status(400).json({ error: 'Insufficient balance' });
+//     }
+
+
+//     // // Mise à jour du solde
+//     user.balance.data = user.balance.data.map(e => {
+//         if (e.coinType.toUpperCase() === coinType.toUpperCase()) {
+//             return { ...e, balance: (Number(e.balance) - withdrawalAmount).toFixed(withdrawConfig.precision) };
+//         }
+//         return e;
+//     });
+
+
+//     user.markModified('balance');
+//     await user.save();
+
+
+
+//     // on creer la transactions en attente
+//     const transactionData = {
+//         userId,
+//         amount: withdrawalAmount,
+//         to: address,
+//         date: new Date(),
+//         currency: {
+//             coinType: coinKey.toUpperCase(),
+//             type: coinKey === 'bnb' ? 'bep20' : 'native',
+//         },
+//         type_transaction: "withdraw",
+//         withdraw_request: 1, // 1 indique une demande de retrait en attente
+//     };
+
+//     const transaction = new models.transactionModel(transactionData);
+//     await transaction.save();
+
+
+
+//     // Envoi emails
+//     if (user.userEmail) {
+//         const emailData = {
+//             amount: withdrawalAmount.toFixed(withdrawConfig.precision),
+//             address,
+//             coinType: coinType.toUpperCase(),
+//             finalAmount: (withdrawalAmount - withdrawConfig.fee).toFixed(withdrawConfig.precision),
+//             transactionId: transaction._id
+//         };
+
+//         // Email utilisateur
+//         sendMsg(
+//             user.userEmail,
+//             `Withdrawal Request Confirmation - ${new Date().toLocaleDateString()}`,
+//             templateWihdrawInit(emailData)
+//         );
+
+//         // Email admin
+//         sendMsg(
+//             config.adminEmail,
+//             `New Withdrawal Request - ${coinType.toUpperCase()}`,
+//             templateAdminPendingWithdraw({
+//                 ...emailData,
+//                 userEmail: user.userEmail,
+//                 userId: user._id
+//             })
+//         );
+//     }
+
+
+//     return res.status(200).json({
+//         status: true,
+//         message: "Withdrawal processed successfully",
+
+//     });
+
+// };
+
+
+//  Retrait Bitcoin
+// Fonction pour initialiser une demande de retrait en créant une transaction pending
+exports.initWithDrawClient = async (req, res) => {
     const { coinType, amount, address, userId } = req.body;
     const coinKey = coinType?.toLowerCase();
 
@@ -305,36 +599,51 @@ exports.initWithDrawClient = async (req, res) => {
         return res.status(400).json({ error: `Invalid ${coinType.toUpperCase()} address format` });
     }
 
-    // Récupération utilisateur avec population du solde
+    // 3. Récupération de l'utilisateur
     const user = await models.userModel.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-
-    // Vérifier s'il existe déjà une demande de retrait en attente
+    // 4. Vérifier s'il existe déjà une demande de retrait en attente
     const existingPendingWithdraw = await models.transactionModel.findOne({
         userId,
         type_transaction: "withdraw",
         withdraw_request: 1
     });
-
     if (existingPendingWithdraw) {
         return res.status(400).json({
             error: "You already have a pending withdrawal request. Please wait until it is processed before making another."
         });
     }
 
-    // Vérification solde
+    // 5. Vérification du solde utilisateur
     const balanceEntry = user.balance.data.find(e => e.coinType.toUpperCase() === coinType.toUpperCase());
     if (!balanceEntry) return res.status(400).json({ error: `${coinType} balance not found` });
-    //balance = {"coinType":"BNB","chain":"BNB","type":"bep20","balance":0.0076490408}
 
     const availableBalance = Number(balanceEntry.balance);
     const withdrawalAmount = Number(amount);
     const withdrawConfig = config.configWithdraw[coinKey];
-    // pour le bnb Withdraw Config: { fee: 0.000085, min: 0.002, max: 0.5, precision: 5 }
 
+    // 6. 🔒 Vérification d'un bonus actif non expiré (moins de 24h)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    // Validations montants
+    const activeBonus = await models.transactionModel.findOne({
+        userId,
+        type_transaction: 'bonus',
+        createdAt: { $gt: twentyFourHoursAgo },
+        $or: [
+            { bonus_processed: false },
+            { bonus_processed: { $exists: false } }
+        ],
+        'currency.coinType': coinType.toUpperCase()
+    });
+
+    if (activeBonus && (availableBalance - withdrawalAmount) < Number(activeBonus.amount)) {
+        return res.status(400).json({
+            error: `You cannot withdraw more than your active bonus of ${activeBonus.amount.toFixed(coinType.toLowerCase() === 'bnb' ? 5 : 7)} ${coinType}. Please wait 24 hours or use a smaller amount.`,
+        });
+    }
+
+    // 7. Vérifications sur les montants
     if (withdrawalAmount < withdrawConfig.min) {
         return res.status(400).json({ error: `Minimum withdrawal: ${withdrawConfig.min.toFixed(withdrawConfig.precision)} ${coinType}` });
     }
@@ -345,22 +654,21 @@ exports.initWithDrawClient = async (req, res) => {
         return res.status(400).json({ error: 'Insufficient balance' });
     }
 
-
-    // // Mise à jour du solde
+    // 8. Mise à jour du solde
     user.balance.data = user.balance.data.map(e => {
         if (e.coinType.toUpperCase() === coinType.toUpperCase()) {
-            return { ...e, balance: (Number(e.balance) - withdrawalAmount).toFixed(withdrawConfig.precision) };
+            return {
+                ...e,
+                balance: (Number(e.balance) - withdrawalAmount).toFixed(withdrawConfig.precision)
+            };
         }
         return e;
     });
 
-
     user.markModified('balance');
     await user.save();
 
-
-
-    // on creer la transactions en attente
+    // 9. Création de la transaction de retrait
     const transactionData = {
         userId,
         amount: withdrawalAmount,
@@ -371,15 +679,13 @@ exports.initWithDrawClient = async (req, res) => {
             type: coinKey === 'bnb' ? 'bep20' : 'native',
         },
         type_transaction: "withdraw",
-        withdraw_request: 1, // 1 indique une demande de retrait en attente
+        withdraw_request: 1,
     };
 
     const transaction = new models.transactionModel(transactionData);
     await transaction.save();
 
-
-
-    // Envoi emails
+    // 10. Envoi d'e-mails
     if (user.userEmail) {
         const emailData = {
             amount: withdrawalAmount.toFixed(withdrawConfig.precision),
@@ -389,14 +695,12 @@ exports.initWithDrawClient = async (req, res) => {
             transactionId: transaction._id
         };
 
-        // Email utilisateur
         sendMsg(
             user.userEmail,
             `Withdrawal Request Confirmation - ${new Date().toLocaleDateString()}`,
             templateWihdrawInit(emailData)
         );
 
-        // Email admin
         sendMsg(
             config.adminEmail,
             `New Withdrawal Request - ${coinType.toUpperCase()}`,
@@ -408,16 +712,12 @@ exports.initWithDrawClient = async (req, res) => {
         );
     }
 
-
+    // 11. Réponse finale
     return res.status(200).json({
         status: true,
         message: "Withdrawal processed successfully",
-
     });
-
 };
-
-
 
 
 
