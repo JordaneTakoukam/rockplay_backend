@@ -1,8 +1,139 @@
-const MinesRound = require('./MinesRound');
-const { influenceMines } = require('./mine_influence');
-// Appliquer l'influence avant toute création de round
-influenceMines(MinesRound);
+// const MinesRound = require('./MinesRound');
+// const { influenceMines } = require('./mine_influence');
+// // Appliquer l'influence avant toute création de round
+// influenceMines(MinesRound);
 
+// const MinesController = require('../controller/MinesController');
+// const SocketManager = require('../manager/SocketManager');
+// const { RoundResult } = require('../constant');
+
+// var AllMines = [];
+
+// const getRoundData = (data) => {
+//     try {
+//         const { userId } = data;
+//         let round = null;
+//         AllMines.forEach((minesRound) => {
+//             if (minesRound.isOwner(userId) && !minesRound.getFinished()) {
+//                 round = minesRound;
+//             }
+//         });
+//         return round;
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => getRoundData', message: err.message });
+//     }
+// };
+
+// const removeRound = async (data) => {
+//     try {
+//         const { userId, type } = data;
+//         const index = AllMines.findIndex((minesRound) => minesRound.isOwner(userId));
+//         if (index >= 0) {
+//             const roundData = AllMines[index];
+//             const result = await MinesController.saveMinesRound(roundData);
+//             if (result.status) {
+//                 SocketManager.sendBetHistory({
+//                     userId:      result.data.userId,
+//                     gameType:    'mines',
+//                     roundNumber: result.data.roundNumber,
+//                     betAmount:   result.data.betAmount,
+//                     coinType:    result.data.coinType,
+//                     payout:      result.data.payout,
+//                     roundResult: result.data.roundResult,
+//                     roundState:  true
+//                 });
+//             }
+
+//             let balanceData;
+//             if ([RoundResult.payout, RoundResult.finish].includes(roundData.roundResult)) {
+//                 const amount   = Number((roundData.betAmount * roundData.currentPayout).toFixed(6));
+//                 const response = await MinesController.updateMyBalance({ userId: roundData.userId, coinType: roundData.coinType, betAmount: -amount, type });
+//                 if (response.status) balanceData = response.data;
+//             }
+
+//             AllMines.splice(index, 1);
+//             return { status: true, balanceData };
+//         }
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => removeRound', message: err.message });
+//         return { status: false };
+//     }
+// };
+
+// exports.getMinesRound = async (data, socket) => {
+//     try {
+//         const { userId, betAmount, coinType, minesCount } = data;
+//         const roundData = getRoundData({ userId });
+//         if (roundData) {
+//             SocketManager.sendBetResult({ status: true, currentPayout: roundData.currentPayout, nextPayout: roundData.nextPayout }, socket);
+//         } else {
+//             const seedData      = await MinesController.getSeedData(userId);
+//             const balanceResult = await MinesController.updateMyBalance(data);
+//             if (balanceResult.status) {
+//                 const minesData = new MinesRound({ userId, betAmount, coinType, minesCount, clientSeed: seedData.clientSeedData.seed, serverSeed: seedData.serverSeedData.seed });
+//                 AllMines.push(minesData);
+//                 SocketManager.sendBetResult({ status: true, currentPayout: minesData.currentPayout, nextPayout: minesData.nextPayout, balanceData: balanceResult.data }, socket);
+//             } else {
+//                 SocketManager.sendBetResult({ status: false, message: balanceResult.message }, socket);
+//             }
+//         }
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => getMinesRound', message: err.message });
+//     }
+// };
+
+// exports.pickCell = async (data, socket) => {
+//     try {
+//         const { userId, i, j } = data;
+//         const round = getRoundData({ userId });
+//         if (round && !round.getFinished()) {
+//             const response = round.pickCell(i, j);
+//             SocketManager.sendPickCellResult({ ...response, i, j, currentPayout: round.currentPayout, nextPayout: round.nextPayout, diamondCount: round.diamondCount }, socket);
+//             if (response.status && response.info) {
+//                 round.lostRound();
+//                 await removeRound({ userId });
+//                 SocketManager.sendRoundResult(round, socket);
+//             }
+//         }
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => pickCell', message: err.message });
+//     }
+// };
+
+// exports.getActiveRound = (data, socket) => {
+//     try {
+//         const { userId } = data;
+//         const roundData = getRoundData({ userId });
+//         SocketManager.activeRoundResult({ status: !!roundData, roundData }, socket);
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => getActiveRound', message: err.message });
+//     }
+// };
+
+// exports.finishRound = async (data, socket) => {
+//     try {
+//         const { userId } = data;
+//         const round = getRoundData({ userId });
+//         let response;
+//         if (round.getCellPicked()) {
+//             round.payoutRound();
+//             response = await removeRound({ userId });
+//         } else {
+//             round.finishRound();
+//             response = await removeRound({ userId, type: 'finish' });
+//         }
+//         if (response.status) {
+//             SocketManager.sendRoundResult({ ...round, balanceData: response.balanceData }, socket);
+//         } else {
+//             SocketManager.sendRoundResult({ ...round }, socket);
+//         }
+//     } catch (err) {
+//         console.error({ title: 'RoundManager => finishRound', message: err.message });
+//     }
+// };
+
+
+const MinesRound = require('./MinesRound');
 const MinesController = require('../controller/MinesController');
 const SocketManager = require('../manager/SocketManager');
 const { RoundResult } = require('../constant');
@@ -11,82 +142,88 @@ var AllMines = [];
 
 const getRoundData = (data) => {
     try {
-        const { userId } = data;
+        let { userId } = data;
         let round = null;
-        AllMines.forEach((minesRound) => {
+        AllMines.map((minesRound) => {
             if (minesRound.isOwner(userId) && !minesRound.getFinished()) {
                 round = minesRound;
             }
         });
         return round;
-    } catch (err) {
+    }
+    catch (err) {
         console.error({ title: 'RoundManager => getRoundData', message: err.message });
     }
-};
+}
 
 const removeRound = async (data) => {
     try {
-        const { userId, type } = data;
-        const index = AllMines.findIndex((minesRound) => minesRound.isOwner(userId));
+        let { userId, type } = data;
+        let index = AllMines.findIndex((minesRound) => minesRound.isOwner(userId));
         if (index >= 0) {
             const roundData = AllMines[index];
             const result = await MinesController.saveMinesRound(roundData);
             if (result.status) {
                 SocketManager.sendBetHistory({
-                    userId:      result.data.userId,
-                    gameType:    'mines',
+                    userId: result.data.userId,
+                    gameType: 'mines',
                     roundNumber: result.data.roundNumber,
-                    betAmount:   result.data.betAmount,
-                    coinType:    result.data.coinType,
-                    payout:      result.data.payout,
+                    betAmount: result.data.betAmount,
+                    coinType: result.data.coinType,
+                    payout: result.data.payout,
                     roundResult: result.data.roundResult,
-                    roundState:  true
+                    roundState: true
                 });
             }
 
             let balanceData;
-            if ([RoundResult.payout, RoundResult.finish].includes(roundData.roundResult)) {
-                const amount   = Number((roundData.betAmount * roundData.currentPayout).toFixed(6));
+            if (roundData.roundResult === RoundResult.payout || roundData.roundResult === RoundResult.finish) {
+                let amount = Number(Number(roundData.betAmount * roundData.currentPayout).toFixed(6));
                 const response = await MinesController.updateMyBalance({ userId: roundData.userId, coinType: roundData.coinType, betAmount: -amount, type });
-                if (response.status) balanceData = response.data;
+                if (response.status)
+                    balanceData = response.data;
             }
 
             AllMines.splice(index, 1);
             return { status: true, balanceData };
         }
-    } catch (err) {
+    }
+    catch (err) {
         console.error({ title: 'RoundManager => removeRound', message: err.message });
         return { status: false };
     }
-};
+}
 
 exports.getMinesRound = async (data, socket) => {
     try {
-        const { userId, betAmount, coinType, minesCount } = data;
+        let { userId, betAmount, coinType, minesCount } = data;
         const roundData = getRoundData({ userId });
-        if (roundData) {
+        if (roundData !== null) {
             SocketManager.sendBetResult({ status: true, currentPayout: roundData.currentPayout, nextPayout: roundData.nextPayout }, socket);
-        } else {
-            const seedData      = await MinesController.getSeedData(userId);
+        }
+        else {
+            let seedData = await MinesController.getSeedData(userId);
             const balanceResult = await MinesController.updateMyBalance(data);
             if (balanceResult.status) {
-                const minesData = new MinesRound({ userId, betAmount, coinType, minesCount, clientSeed: seedData.clientSeedData.seed, serverSeed: seedData.serverSeedData.seed });
+                let minesData = new MinesRound({ userId, betAmount, coinType, minesCount, clientSeed: seedData.clientSeedData.seed, serverSeed: seedData.serverSeedData.seed });
                 AllMines.push(minesData);
                 SocketManager.sendBetResult({ status: true, currentPayout: minesData.currentPayout, nextPayout: minesData.nextPayout, balanceData: balanceResult.data }, socket);
-            } else {
+            }
+            else {
                 SocketManager.sendBetResult({ status: false, message: balanceResult.message }, socket);
             }
         }
-    } catch (err) {
+    }
+    catch (err) {
         console.error({ title: 'RoundManager => getMinesRound', message: err.message });
     }
-};
+}
 
 exports.pickCell = async (data, socket) => {
     try {
         const { userId, i, j } = data;
         const round = getRoundData({ userId });
-        if (round && !round.getFinished()) {
+        if (round !== null && !round.getFinished()) {
             const response = round.pickCell(i, j);
             SocketManager.sendPickCellResult({ ...response, i, j, currentPayout: round.currentPayout, nextPayout: round.nextPayout, diamondCount: round.diamondCount }, socket);
             if (response.status && response.info) {
@@ -95,20 +232,27 @@ exports.pickCell = async (data, socket) => {
                 SocketManager.sendRoundResult(round, socket);
             }
         }
-    } catch (err) {
+    }
+    catch (err) {
         console.error({ title: 'RoundManager => pickCell', message: err.message });
     }
-};
+}
 
 exports.getActiveRound = (data, socket) => {
     try {
         const { userId } = data;
         const roundData = getRoundData({ userId });
-        SocketManager.activeRoundResult({ status: !!roundData, roundData }, socket);
-    } catch (err) {
+        if (roundData !== null) {
+            SocketManager.activeRoundResult({ status: true, roundData }, socket);
+        }
+        else {
+            SocketManager.activeRoundResult({ status: false }, socket);
+        }
+    }
+    catch (err) {
         console.error({ title: 'RoundManager => getActiveRound', message: err.message });
     }
-};
+}
 
 exports.finishRound = async (data, socket) => {
     try {
@@ -118,16 +262,17 @@ exports.finishRound = async (data, socket) => {
         if (round.getCellPicked()) {
             round.payoutRound();
             response = await removeRound({ userId });
-        } else {
+        }
+        else {
             round.finishRound();
             response = await removeRound({ userId, type: 'finish' });
         }
-        if (response.status) {
+        if (response.status)
             SocketManager.sendRoundResult({ ...round, balanceData: response.balanceData }, socket);
-        } else {
+        else
             SocketManager.sendRoundResult({ ...round }, socket);
-        }
-    } catch (err) {
-        console.error({ title: 'RoundManager => finishRound', message: err.message });
     }
-};
+    catch (err) {
+        console.error({ title: 'RoundManager => pickCell', message: err.message });
+    }
+}

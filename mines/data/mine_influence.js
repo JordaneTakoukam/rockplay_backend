@@ -76,112 +76,223 @@
 
 
 
+// const { calculateWinChance } = require('../../betUtils/betUtils');
+
+// function influenceMines(MinesRound) {
+//     MinesRound.prototype.pickCell = function (i, j) {
+//         if (this.selectBoard[i][j]) {
+//             return { status: false, info: false };
+//         }
+
+//         this.cellPicked = true;
+//         this.selectBoard[i][j] = true;
+
+//         if (typeof this._picksCount === 'undefined') {
+//             this._picksCount = 0;
+//             this._firstPickDone = false;
+
+//             // 💡 Log initial : état du plateau
+//             const totalCases = this.rows * this.cols;
+//             const maxDiamonds = totalCases - this.minesCount;
+//             const maxEmptySpaces = totalCases - this.minesCount - maxDiamonds;
+
+//             console.log(`--- Initial Board State ---`);
+//             console.log(`Total cases: ${totalCases}`);
+//             console.log(`Mines: ${this.minesCount}`);
+//             console.log(`Max diamonds possible: ${maxDiamonds}`);
+//             console.log(`Max empty spaces possible: ${maxEmptySpaces}`);
+//         }
+
+//         this._picksCount++;
+
+//         if (!this._firstPickDone) {
+//             this._firstPickDone = true;
+//             this._nextChance = calculateWinChance(this.betAmount, this.coinType.coinType);
+//         }
+
+//         const chance = this._nextChance;
+//         const r = Math.random();
+//         const win = r < chance;
+
+//         if (win) {
+//             this.diamondCount++;
+//             this.currentPayout = this.nextPayout;
+//             this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount);
+
+//             // 💎 Ajouter un diamant supplémentaire dans une case vide aléatoire
+//             const possibleDiamondPositions = [];
+//             for (let row = 0; row < this.rows; row++) {
+//                 for (let col = 0; col < this.cols; col++) {
+//                     if (!this.selectBoard[row][col] && !this.resultBoard[row][col]) {
+//                         possibleDiamondPositions.push([row, col]);
+//                     }
+//                 }
+//             }
+
+//             if (possibleDiamondPositions.length > 0) {
+//                 const randomIndex = Math.floor(Math.random() * possibleDiamondPositions.length);
+//                 const [diamondRow, diamondCol] = possibleDiamondPositions[randomIndex];
+
+//                 this.resultBoard[diamondRow][diamondCol] = 'diamond'; // valeur spécifique pour affichage
+//                 this.selectBoard[diamondRow][diamondCol] = true;
+//             }
+
+//             return { status: true, info: false };
+//         } else {
+//             this.minesCount = Math.max(0, this.minesCount - 1);
+//             this.resultBoard[i][j] = true;
+
+//             const possibleMinePositions = [];
+//             for (let row = 0; row < this.rows; row++) {
+//                 for (let col = 0; col < this.cols; col++) {
+//                     if (!this.selectBoard[row][col] && !this.resultBoard[row][col]) {
+//                         possibleMinePositions.push([row, col]);
+//                     }
+//                 }
+//             }
+
+//             if (possibleMinePositions.length > 0) {
+//                 const randomIndex = Math.floor(Math.random() * possibleMinePositions.length);
+//                 const [mineRow, mineCol] = possibleMinePositions[randomIndex];
+
+//                 this.resultBoard[mineRow][mineCol] = true;
+//             }
+
+//             this.lostRound();
+
+//             return { status: true, info: true };
+//         }
+//     };
+// }
+
+// module.exports = { influenceMines };
 
 
 
+const { v4: uuidv4 } = require('uuid');
+const { generateMinesHash, randomNumber, factorial } = require('../../helper/mainHelper');
+const { RoundResult } = require('../constant');
 
+const MinMinesCount = 2;
+const BoardRows = 5;
+const BoardCols = 5;
 
+module.exports = class MinesRound {
+    roundNumber;
+    roundResult;
+    roundDate;
+    minesCount;
+    diamondCount;
+    userId;
+    betAmount;
+    serverSeed;
+    clientSeed;
+    resultBoard;
+    selectBoard;
+    currentPayout;
+    nextPayout;
+    cellPicked;
+    isFinished;
 
+    constructor(data) {
+        this.initMinesData(data);
+    }
 
+    initMinesData(data) {
+        this.roundNumber = uuidv4();
+        this.roundResult = RoundResult.none;
+        this.roundDate = new Date();
+        this.minesCount = data.minesCount;
+        this.diamondCount = 0;
+        this.userId = data.userId;
+        this.betAmount = data.betAmount;
+        this.coinType = data.coinType;
+        this.serverSeed = data.serverSeed;
+        this.clientSeed = data.clientSeed;
+        this.cellPicked = false;
+        this.isFinished = false;
+        this.currentPayout = 1;
+        this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount + 1);
+        this.resultBoard = this.generateResultBoard();
+        this.selectBoard = Array.from(Array(BoardRows), () => Array(BoardCols).fill(false));
+    }
 
-//
-//
-//
-// //
+    generateResultBoard() {
+        let board = Array.from(Array(BoardRows), () => Array(BoardCols).fill(false));
 
-const { calculateWinChance } = require('../../betUtils/betUtils');
-
-function influenceMines(MinesRound) {
-    MinesRound.prototype.pickCell = function (i, j) {
-        if (this.selectBoard[i][j]) {
-            console.log(`Cell already picked: [${i}, ${j}]`);
-            return { status: false, info: false };
+        let randomIndices = [];
+        while (randomIndices.length < this.minesCount) {
+            const randomIndex = randomNumber(BoardCols * BoardRows);
+            if (!randomIndices.includes(randomIndex)) {
+                randomIndices.push(randomIndex);
+            }
         }
+        for (const index of randomIndices) {
+            const row = Math.floor(index / BoardRows);
+            const col = index % BoardCols;
+            board[row][col] = true;
+        }
+        return board;
+    }
 
+    generatePayout(minesCount) {
+        return PayoutList[minesCount - MinMinesCount];
+    }
+
+    payoutRound() {
+        if (!this.isFinished) {
+            this.roundResult = RoundResult.payout;
+            this.isFinished = true;
+        }
+    }
+
+    finishRound() {
+        if (!this.isFinished) {
+            this.roundResult = RoundResult.finish;
+            this.isFinished = true;
+        }
+    }
+
+    lostRound() {
+        if (!this.isFinished) {
+            this.roundResult = RoundResult.lost;
+            this.isFinished = true;
+        }
+    }
+
+    getFinished() {
+        return this.isFinished;
+    }
+
+    getCellPicked() {
+        return this.cellPicked;
+    }
+
+    isOwner(userId) {
+        return this.userId === userId;
+    }
+
+    pickCell(i, j) {
         this.cellPicked = true;
         this.selectBoard[i][j] = true;
-
-        if (typeof this._picksCount === 'undefined') {
-            this._picksCount = 0;
-            this._firstPickDone = false;
-        }
-        this._picksCount++;
-
-        if (!this._firstPickDone) {
-            this._firstPickDone = true;
-            this._nextChance = calculateWinChance(this.betAmount, this.coinType.coinType);
-        }
-        const chance = this._nextChance;
-
-        const r = Math.random();
-        const win = r < chance;
-
-        // Fonction qui compte les cases libres (ni pickées, ni mines révélées)
-        const countEmptySpaces = () => {
-            let count = 0;
-            for (let row = 0; row < this.rows; row++) {
-                for (let col = 0; col < this.cols; col++) {
-                    if (!this.selectBoard[row][col] && !this.resultBoard[row][col]) {
-                        count++;
-                    }
-                }
-            }
-            return count;
-        };
-
-        if (win) {
-            this.diamondCount++;
+        let cellInfo = this.resultBoard[i][j];
+        if (!cellInfo) {
+            this.diamondCount = this.diamondCount + 1;
             this.currentPayout = this.nextPayout;
-            this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount);
-
-            const emptySpaces = countEmptySpaces();
-            const totalCases = this.rows * this.cols;
-            const totalCalc = this.diamondCount + this.minesCount + emptySpaces;
-            console.log(`Pick #${this._picksCount} [${i}, ${j}] WIN — diamonds=${this.diamondCount}, emptySpaces=${emptySpaces}, chance=${chance}, rand=${r}`);
-            console.log(`Total cases: ${totalCases}, diamonds + mines + emptySpaces = ${totalCalc}`);
-
-            return { status: true, info: false };
-        } else {
-            // Perdu => décrémenter minesCount pour la mine révélée
-            this.minesCount = Math.max(0, this.minesCount - 1);
-
-            // Marquer la case jouée comme mine révélée (perdu ici)
-            this.resultBoard[i][j] = true;
-
-            // Trouver toutes les cases vides possibles (cases non jouées et sans mine révélée)
-            const possiblePositions = [];
-            for (let row = 0; row < this.rows; row++) {
-                for (let col = 0; col < this.cols; col++) {
-                    if (!this.selectBoard[row][col] && !this.resultBoard[row][col]) {
-                        possiblePositions.push([row, col]);
-                    }
-                }
-            }
-
-            if (possiblePositions.length > 0) {
-                // Choisir une case au hasard parmi les cases vides pour remplacer par une mine forcée
-                const randomIndex = Math.floor(Math.random() * possiblePositions.length);
-                const [mineRow, mineCol] = possiblePositions[randomIndex];
-
-                // Placer la mine forcée
-                this.resultBoard[mineRow][mineCol] = true;
-
-                console.log(`Forced mine placed at [${mineRow}, ${mineCol}]`);
-            } else {
-                console.log('No position available to place forced mine.');
-            }
-
-            this.lostRound();
-
-            const emptySpaces = countEmptySpaces();
-            const totalCases = this.rows * this.cols;
-            const totalCalc = this.diamondCount + this.minesCount + emptySpaces;
-            console.log(`Pick #${this._picksCount} [${i}, ${j}] LOSS — diamonds=${this.diamondCount}, emptySpaces=${emptySpaces}, chance=${chance}, rand=${r}, minesCount=${this.minesCount}`);
-            console.log(`Total cases: ${totalCases}, diamonds + mines + emptySpaces = ${totalCalc}`);
-
-            return { status: true, info: true };
+            this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount + 1);
         }
-    };
-}
+        return { status: true, info: cellInfo };
+    }
 
-module.exports = { influenceMines };
+    generateNextMultiplier(mines, diamond) {
+        if ((mines + diamond) > (BoardCols * BoardRows))
+            return 0;
+
+        let houseEdge = 0.01;
+        return Number(Number((1 - houseEdge) * this.nCr(25, diamond) / this.nCr(25 - mines, diamond)).toFixed(2));
+    }
+
+    nCr(n, r) {
+        return factorial(n) / factorial(r) / factorial(n - r);
+    }
+}
