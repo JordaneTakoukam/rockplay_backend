@@ -158,6 +158,17 @@ const TransactionDetailModal = ({ open, handleClose, transaction, onProcessPayme
         // }
     };
 
+    const handleCancel = async () => {
+        // await onProcessPayment();
+
+        // showLoading();
+        // try {
+        //     handleClose();
+        // } finally {
+        //     hideLoading();
+        // }
+    };
+
     return (
         <Modal open={open} onClose={handleClose}>
             <Box className={classes.ModalBox}>
@@ -212,8 +223,17 @@ const TransactionDetailModal = ({ open, handleClose, transaction, onProcessPayme
                                 onClick={handleClose}
                                 sx={{ whiteSpace: 'nowrap' }}
                             >
-                                Cancel
+                                Close
                             </Button>
+
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={handleCancel}
+                            >
+                                Cancel Payment
+                            </Button>
+
                             <Button
                                 variant="contained"
                                 color="primary"

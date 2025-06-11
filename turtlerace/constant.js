@@ -19,6 +19,6 @@ module.exports = {
         completeRound: {
             time: 2.0
         },
-        xFactor: 2.94
+        xFactor: 1.94
     }
 }

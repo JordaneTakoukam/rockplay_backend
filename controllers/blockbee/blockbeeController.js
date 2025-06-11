@@ -27,7 +27,9 @@ exports.getDepositBlockbeeAddress = async (data) => {
     if (coinKey == 'bnb') {
         ticker = '/bep20/bnb';
     }
-
+    else if (coinKey == 'sol') {
+        ticker = 'sol/sol';
+    }
     else {
         ticker = `/${coinKey}`;
     }
@@ -75,7 +77,9 @@ exports.withdrawBlockbee = async (data) => {
     if (coinType.toLowerCase() == 'bnb') {
         ticker = '/bep20/bnb';
     }
-
+    else if (coinType.toLowerCase() == 'sol') {
+        ticker = 'sol/sol';
+    }
     else {
         ticker = `/${coinType.toLowerCase()}`;
     }

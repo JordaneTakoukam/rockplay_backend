@@ -10,8 +10,7 @@ const balanceObject = {
         { coinType: 'DOGE', chain: 'DOGE', type: 'native', balance: 0 },      // Dogecoin
         { coinType: 'ETH', chain: 'ETH', type: 'native', balance: 0 },        // Ethereum (ERC20)
         { coinType: 'TRX', chain: 'TRON', type: 'native', balance: 0 },
-        { coinType: 'SOL', chain: 'SOL', type: 'native', balance: 0 },
-       // { coinType: 'SOL', balance: 0, chain: 'SOL', type: 'sol' },
+        { coinType: 'SOL', chain: 'SOL', type: 'sol', balance: 0 },
         // { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
         // { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
         { coinType: 'RP', balance: 0, chain: '', type: '' }

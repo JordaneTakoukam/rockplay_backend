@@ -13,7 +13,7 @@ const configWithdraw = {
   // Blockbee min = 0.00008 BTC (~7.58 $)
   btc: {
     minDeposit: 0.00012, // ~11.34 $
-    min: 0.00018,        // ~17.01 $
+    min: 0.0002,        // ~17.01 $
     max: 0.0032,         // ~301.95 $
     precision: 8
   },
@@ -29,7 +29,7 @@ const configWithdraw = {
   // Blockbee min = 10 TRX (~2.50 $)
   trx: {
     minDeposit: 12,      // ~3.00 $
-    min: 18,             // ~4.50 $
+    min: 20,             // ~4.50 $
     max: 1200,           // ~300.00 $
     precision: 2
   },
@@ -37,7 +37,7 @@ const configWithdraw = {
   // Blockbee min = 0.001 BNB (~0.59 $)
   bnb: {
     minDeposit: 0.002,   // ~1.18 $
-    min: 0.003,          // ~1.77 $
+    min: 0.005,          // ~1.77 $
     max: 0.51,           // ~301.90 $
     precision: 5
   },
@@ -45,7 +45,7 @@ const configWithdraw = {
   // Blockbee min = 0.0005 BCH (~0.18 $)
   bch: {
     minDeposit: 0.001,   // ~0.36 $
-    min: 0.0015,         // ~0.54 $
+    min: 0.002,         // ~0.54 $
     max: 0.8,            // ~288.06 $
     precision: 4
   },
@@ -53,7 +53,7 @@ const configWithdraw = {
   // Blockbee min = 0.002 LTC (~0.18 $)
   ltc: {
     minDeposit: 0.003,   // ~0.26 $
-    min: 0.0045,         // ~0.39 $
+    min: 0.005,         // ~0.39 $
     max: 3.5,            // ~304.37 $
     precision: 4
   },
@@ -61,7 +61,7 @@ const configWithdraw = {
   // Blockbee min = 10 DOGE (~1.73 $)
   doge: {
     minDeposit: 12,      // ~2.08 $
-    min: 18,             // ~3.12 $
+    min: 20,             // ~3.12 $
     max: 1800,           // ~312.30 $
     precision: 2
   },
@@ -69,7 +69,7 @@ const configWithdraw = {
   // Blockbee min = 0.004 SOL (~0.59 $)
   sol: {
     minDeposit: 0.006,   // ~0.88 $
-    min: 0.009,          // ~1.32 $
+    min: 0.01,          // ~1.32 $
     max: 2,              // ~294.00 $
     precision: 4
   }

@@ -312,6 +312,7 @@ exports.webHookDeposit = async (req, res) => {
             else if (prefix === "trc20") tokenType = "TRC20";
             else if (prefix === "bep20") tokenType = "BEP20";
             else if (prefix === "polygon") tokenType = "Polygon";
+            else if (prefix === "sol") tokenType = "SOL";
             currency = { coinType: ticker.toUpperCase(), type: tokenType.toLowerCase() };
         } else {
             currency = { coinType: coin.toUpperCase(), type: 'native' };
@@ -602,6 +603,21 @@ exports.initWithDrawClient = async (req, res) => {
     // 3. Récupération de l'utilisateur
     const user = await models.userModel.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+
+
+    // le user doit avoir au moins fait un depot pour demander un retrait : 
+    // 4. Vérifier s'il existe déjà une demande de retrait en attente
+    const existingMinimumOneDeposit = await models.transactionModel.findOne({
+        userId,
+        type_transaction: "deposit",
+    });
+
+    if (!existingMinimumOneDeposit) {
+        return res.status(400).json({
+            error: "You must make a deposit before you can request a withdrawal."
+        });
+    }
 
     // 4. Vérifier s'il existe déjà une demande de retrait en attente
     const existingPendingWithdraw = await models.transactionModel.findOne({

@@ -7,9 +7,13 @@ const UserModel = require('../models/UserModel');
 
 // CRON toutes les 5 minutes
 // const job = new CronJob('*/5 * * * *', async () => { // toutes les 5 mintes 
-const job = new CronJob('0 * * * *', async () => {
 
-    console.log('🔁 [CRON] Vérification des bonus non traités…');
+
+
+// s'executera tous les jours a 02h du matin
+const job = new CronJob('0 2 * * *', async () => {
+
+    console.log('🔁 [CRON] Vérification des bonus non traités à 02h...');
 
     try {
         const now = new Date();
