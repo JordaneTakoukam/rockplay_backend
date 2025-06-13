@@ -19,11 +19,14 @@ exports.createApp = (config) => {
         keys: ['roostercookie'],
         maxAge: 24 * 60 * 60 * 1000
     }));
-
     const models = require('../models/index');
+
+
+    const gameName = "Mine";
+
     models.mongoose.connect(config.DB)
         .then(() => {
-            console.log('server connected to mongodb successfully');
+            console.log(`✅ ${gameName} game started successfully`);
         })
         .catch((err) => {
             console.error({ title: 'mongodb connection error', message: err.message });
@@ -31,7 +34,7 @@ exports.createApp = (config) => {
         });
 
     app.get('/', (req, res) => {
-        res.json('Mine service is start')
+        res.json(`${gameName} service is start`);
     });
     if (app.get('env') === 'development')
         app.use(errorHandler({ dumpExceptions: true, showStack: true }));

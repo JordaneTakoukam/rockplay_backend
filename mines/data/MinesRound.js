@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { generateMinesHash, randomNumber, factorial } = require('../../helper/mainHelper');
 const { RoundResult } = require('../constant');
+const { calculateWinChance } = require('../../betUtils/betUtils');
 
 const MinMinesCount = 2;
 const BoardRows = 5;
@@ -106,16 +107,129 @@ module.exports = class MinesRound {
         return this.userId === userId;
     }
 
+    // avant l'influence 
+    // pickCell(i, j) {
+    //     this.cellPicked = true;
+    //     this.selectBoard[i][j] = true;
+    //     let cellInfo = this.resultBoard[i][j]; // true = mine, false = diamant
+    //     if (!cellInfo) {
+    //         this.diamondCount = this.diamondCount + 1;
+    //         this.currentPayout = this.nextPayout;
+    //         this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount + 1);
+    //     }
+    //     return { status: true, info: cellInfo };
+    // }
+
+
+    // fonction influente
     pickCell(i, j) {
         this.cellPicked = true;
         this.selectBoard[i][j] = true;
-        let cellInfo = this.resultBoard[i][j]; // true = mine, false = diamant
-        if (!cellInfo) {
-            this.diamondCount = this.diamondCount + 1;
+
+        // Correction: utiliser this.coinType directement
+        const currency = this.coinType.coinType;
+
+        // Log des détails de la partie
+        console.log("\n=== DÉTAILS DE LA PARTIE ===");
+        console.log(`Utilisateur: ${this.userId}`);
+        console.log(`Mise: ${this.betAmount} ${currency}`);
+        console.log(`Mines: ${this.minesCount}`);
+        console.log(`Diamants actuels: ${this.diamondCount}`);
+        console.log(`Multiplicateur actuel: ${this.currentPayout}x`);
+        console.log(`Prochain multiplicateur: ${this.nextPayout}x`);
+        console.log(`Cases révélées: ${this.countRevealedCells()}/${this.rows * this.cols}`);
+
+        // Calcul du gain potentiel
+        const potentialWinAmount = this.betAmount * this.nextPayout;
+        console.log(`Gain potentiel: ${potentialWinAmount} ${currency}`);
+
+        let winChance;
+        let loseChance;
+        try {
+            // CORRECTION: calculateWinChance retourne la probabilité de GAGNER
+            winChance = calculateWinChance(potentialWinAmount, currency);
+
+            // Calcul de la probabilité de perte (inverse de la probabilité de gain)
+            loseChance = 1 - winChance;
+
+            console.log(`Chance de gain calculée: ${(winChance * 100).toFixed(2)}%`);
+            console.log(`Chance de perte calculée: ${(loseChance * 100).toFixed(2)}%`);
+        } catch (err) {
+            console.error('Erreur dans calculateWinChance:', err);
+            // Valeurs par défaut en cas d'erreur
+            winChance = 0.3;
+            loseChance = 0.7;
+        }
+
+        // Décision basée sur la probabilité de PERTE
+        const rand = Math.random();
+        const shouldLose = rand < loseChance;
+        const isActuallyMine = this.resultBoard[i][j];
+
+        console.log(`Tirage aléatoire: ${rand.toFixed(4)}`);
+        console.log(`Décision: ${shouldLose ? "DEVRAIT PERDRE" : "DEVRAIT GAGNER"}`);
+        console.log(`Case actuelle: ${isActuallyMine ? "MINE" : "DIAMANT"}`);
+
+        // Ajustement dynamique du plateau
+        if (shouldLose && !isActuallyMine) {
+            console.log(">> Transformation: DIAMANT -> MINE");
+            this.makeCellMine(i, j);
+        } else if (!shouldLose && isActuallyMine) {
+            console.log(">> Transformation: MINE -> DIAMANT");
+            this.makeCellSafe(i, j);
+        }
+
+        // Vérification finale de la case
+        const finalCellState = this.resultBoard[i][j];
+        if (!finalCellState) {
+            this.diamondCount++;
             this.currentPayout = this.nextPayout;
             this.nextPayout = this.generateNextMultiplier(this.minesCount, this.diamondCount + 1);
+            console.log(`>> DIAMANT TROUVÉ! Nouveau multiplicateur: ${this.nextPayout}x`);
+        } else {
+            console.log(">> MINE TROUVÉE! Partie terminée");
         }
-        return { status: true, info: cellInfo };
+
+        console.log(`=== FIN DU TOUR ===\n`);
+        return { status: true, info: finalCellState };
+    }
+
+    // Fonction utilitaire pour compter les cases révélées
+    countRevealedCells() {
+        let count = 0;
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                if (this.selectBoard[i][j]) count++;
+            }
+        }
+        return count;
+    }
+    // Transforme une case en mine et compense ailleurs
+    makeCellMine(i, j) {
+        // Trouver une mine existante à transformer en diamant
+        for (let x = 0; x < this.rows; x++) {
+            for (let y = 0; y < this.cols; y++) {
+                if (this.resultBoard[x][y] && !this.selectBoard[x][y] && (x !== i || y !== j)) {
+                    this.resultBoard[x][y] = false; // Transforme en diamant
+                    this.resultBoard[i][j] = true;  // Transforme en mine
+                    return;
+                }
+            }
+        }
+    }
+
+    // Transforme une mine en diamant et compense ailleurs
+    makeCellSafe(i, j) {
+        // Trouver un diamant existant à transformer en mine
+        for (let x = 0; x < this.rows; x++) {
+            for (let y = 0; y < this.cols; y++) {
+                if (!this.resultBoard[x][y] && !this.selectBoard[x][y] && (x !== i || y !== j)) {
+                    this.resultBoard[x][y] = true;  // Transforme en mine
+                    this.resultBoard[i][j] = false; // Transforme en diamant
+                    return;
+                }
+            }
+        }
     }
 
     generateNextMultiplier(mines, diamond) {

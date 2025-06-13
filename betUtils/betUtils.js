@@ -37,7 +37,7 @@ function calculateWinChance(betAmount, coinType = '') {
     }
   }
 
-  console.log(`Chance finale renvoyée : ${chanceResult}\n`);
+  console.log(`Chance finale renvoyée : ${chanceResult}`);
   return chanceResult;
 }
 
