@@ -611,10 +611,81 @@ exports.getSpinCount = async (req, res) => {
     }
 }
 
+// exports.getBetHistoryData = async (req, res) => {
+//     try {
+//         const { gameType, limit=10, userId } = req.body;
+
+//         // On prépare un filtre conditionnel
+//         const matchStage = {};
+//         if (gameType) {
+//             matchStage.gameType = gameType;
+//         }
+
+//         const historyData = await models.betHistoryModel.aggregate([
+//             // 1. Filtre par gameType, uniquement si fourni
+//             { $match: matchStage },
+
+//             // 2. On joint avec les données utilisateurs
+//             {
+//                 $lookup: {
+//                     from: 'users',
+//                     foreignField: '_id',
+//                     localField: 'userId',
+//                     as: 'userData'
+//                 }
+//             },
+//             { $unwind: '$userData' },
+
+//             // 3. Tri pour obtenir les plus récents
+//             { $sort: { createdAt: -1 } },
+
+//             // 4. Limitation du nombre de résultats
+//             { $limit: limit },
+
+//             // 5. Projection des champs désirés
+//             {
+//                 $project: {
+//                     userName: '$userData.userNickName',
+//                     userLevel: '0', // tu peux ajuster selon ta logique
+//                     betAmount: 1,
+//                     coinType: 1,
+//                     payout: 1,
+//                     roundResult: 1,
+//                     gameType: 1,
+//                     date: '$createdAt'
+//                 }
+//             }
+//         ]);
+
+//         return res.json({ status: true, data: historyData });
+//     } catch (err) {
+//         console.error({ title: 'BetHistory => getBetHistoryData', message: err.message });
+//         return res.json({ status: false, message: 'Server Error' });
+//     }
+// };
+
 exports.getBetHistoryData = async (req, res) => {
     try {
-        const { historyType } = req.body;
+        const { gameType, limit = 10, userId } = req.body;
+
+        // Construction du filtre conditionnel
+        const matchStage = {};
+
+        // Filtre par gameType si fourni
+        if (gameType && gameType !== 'all') {
+            matchStage.gameType = gameType;
+        }
+
+        // Filtre par userId si fourni
+        if (userId) {
+            matchStage.userId = mongoose.Types.ObjectId(userId);
+        }
+
         const historyData = await models.betHistoryModel.aggregate([
+            // 1. Filtre combiné (gameType + userId si fournis)
+            { $match: matchStage },
+
+            // 2. Jointure avec les données utilisateur
             {
                 $lookup: {
                     from: 'users',
@@ -623,36 +694,37 @@ exports.getBetHistoryData = async (req, res) => {
                     as: 'userData'
                 }
             },
-            {
-                $unwind: '$userData'
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
-            },
-            {
-                $limit: 10
-            },
+            { $unwind: '$userData' },
+
+            // 3. Tri par date décroissante
+            { $sort: { createdAt: -1 } },
+
+            // 4. Limitation des résultats
+            { $limit: parseInt(limit) },
+
+            // 5. Projection des champs
             {
                 $project: {
                     userName: '$userData.userNickName',
-                    userLevel: '0',
-                    betAmount: '$betAmount',
-                    coinType: '$coinType',
-                    payout: '$payout',
-                    roundResult: '$roundResult',
-                    gameType: '$gameType'
+                    userLevel: '$userData.level', // Utilisation du vrai champ level si disponible
+                    betAmount: 1,
+                    coinType: 1,
+                    payout: 1,
+                    roundResult: 1,
+                    gameType: 1,
+                    date: '$createdAt',
+                    userLevel: "0", // tu peux ajuster selon ta logique
+
                 }
             }
         ]);
+
         return res.json({ status: true, data: historyData });
-    }
-    catch (err) {
-        console.error({ title: 'authController => getBetHistoryData', message: err.message });
+    } catch (err) {
+        console.error({ title: 'BetHistory => getBetHistoryData', message: err.message });
         return res.json({ status: false, message: 'Server Error' });
     }
-}
+};
 
 exports.updateCurrency = async (req, res) => {
     try {

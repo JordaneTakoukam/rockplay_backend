@@ -1,15 +1,17 @@
+// 13 - 06 - 2025 a 14h56
 const cryptoPrices = {
-    btc: 108066.12,      // Bitcoin (BTC)
-    eth: 2726.62,        // Ethereum (ETH)
-    bnb: 681.72,         // Binance Coin (BNB)
-    trx: 0.2745,         // TRON (TRX)
-    btc_ln: 108066.12,   // Bitcoin Lightning (identique à BTC)
-    bch: 417.96,         // Bitcoin Cash (BCH)
-    ltc: 96.90,          // Litecoin (LTC)
-    doge: 0.2243,        // Dogecoin (DOGE)
-    sol: 171.92,         // Solana (SOL)
-    rp: 1                // Crypto du jeu (valeur fictive)
+    btc: 104989.00,     // Bitcoin (BTC)
+    eth: 2547.47,       // Ethereum (ETH)
+    bnb: 652.18,        // Binance Coin (BNB)
+    trx: 0.27361,       // TRON (TRX)
+    btc_ln: 0.00006067, // Bitcoin Lightning (LBTC) – très faible valeur actuelle (~0.00006 USD) :contentReference[oaicite:10]{index=10}
+    bch: 418.92,        // Bitcoin Cash (BCH)
+    ltc: 84.06,         // Litecoin (LTC)
+    doge: 0.175117,     // Dogecoin (DOGE)
+    sol: 145.57,        // Solana (SOL)
+    rp: 1               // Crypto du jeu (valeur fictive)
 };
+
 
 
 module.exports = {
@@ -21,15 +23,15 @@ module.exports = {
     // Betting thresholds and chances to win
     betChances: [
         // amount in usd
-        { min: 0.01, max: 4.99, chance: 0.05 }, // 50%
+        { min: 0.01, max: 4.99, chance: 0.05 },
 
         // 3% 
-        { min: 5, max: 49.99, chance: 0.03 }, // 30%
+        { min: 5, max: 49.99, chance: 0.03 },
 
         // 2%
-        { min: 50, max: 99.99, chance: 0.02 }, // 20%
+        { min: 50, max: 99.99, chance: 0.02 },
 
         // 1% 
-        { min: 100, max: Infinity, chance: 0 }, // 0 %
+        { min: 100, max: Infinity, chance: 0 },
     ]
 };
