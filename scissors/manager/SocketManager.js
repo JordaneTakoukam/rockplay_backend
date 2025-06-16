@@ -26,6 +26,7 @@ exports.sendBetResult = (data, socket) => {
 }
 
 exports.sendHistoryData = (data, socket) => {
+
     if (scissorsSocket === null)
         return;
 

@@ -6,11 +6,7 @@ const app = express();
 const server = http.Server(app);
 const config = require('./config');
 require('dotenv').config({ path: __dirname + '/.env' });
-require('./cron/cron-job');
 
-
-
-const initController = require('./controllers/initController');
 
 
 const corsOptions = {
@@ -22,8 +18,6 @@ const corsOptions = {
     preflightContinue: false,
 };
 app.use(cors(corsOptions));
-
-
 // app.use(cors('*'));
 app.use(bodyParser.json({ limit: '1mb', type: 'application/json' }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -39,12 +33,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', express.static('./public'));
 
 const models = require('./models/index');
-const { handleDepositBonus } = require('./controllers/blockbee/depositBonusHandler');
+
 models.mongoose.connect(config.DB)
     .then(async () => {
         console.log('server connected to mongodb successfully');
 
-
+        require('./cron/cron-job');
+        require('./cron/cron-fake-history');
 
 
     })

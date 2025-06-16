@@ -1,6 +1,3 @@
-const mongoose = require('mongoose');
-const config = require('../config');
-const { models } = require('mongoose');
 const { CronJob } = require('cron');
 const TransactionModel = require('../models/TransactionModel');
 const UserModel = require('../models/UserModel');
@@ -83,3 +80,4 @@ const job = new CronJob('0 2 * * *', async () => {
 });
 
 job.start();
+console.log('🚀 Cron job gestion du bonus depot');

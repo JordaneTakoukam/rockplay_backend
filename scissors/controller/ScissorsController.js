@@ -26,7 +26,7 @@ exports.saveScissorsRound = async (data) => {
                 payout: payout,
                 roundDate: new Date()
             }).save();
-            
+
             if (data.result === 'win') {
                 userData.balance.data[currencyIndex].balance = userData.balance.data[currencyIndex].balance + data.betAmount * (payout - 1);
                 await models.userModel.findOneAndUpdate({ _id: data.userId }, { 'balance': userData.balance });
@@ -48,6 +48,7 @@ exports.saveScissorsRound = async (data) => {
 }
 
 exports.getHistory = async (data) => {
+
     try {
         const { userId } = data;
         const historyData = await models.scissorsRoundModel.find({ userId }).sort({ roundDate: '-1' }).limit(5);
