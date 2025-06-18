@@ -36,7 +36,7 @@ exports.getScissorsResult = async (data, socket) => {
                     roundNumber: response.roundData.roundNumber,
                     betAmount: response.roundData.betAmount,
                     coinType: response.roundData.coinType,
-                    payout: response.roundData.payout,
+                    payout: response.roundData.roundResult === 'draw' || response.roundData.roundResult === 'lost' ? 1 : response.roundData.payout,
                     roundResult: response.roundData.roundResult,
                     roundState: true
                 });

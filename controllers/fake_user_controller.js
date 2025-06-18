@@ -54,7 +54,37 @@ async function createFakeUsersIfNotExist() {
     }
 }
 
-// Générer un seul historique de jeu aléatoire
+// Fonction utilitaire générique pour choisir un élément aléatoire dans une liste
+function getRandomFromList(list) {
+    if (!Array.isArray(list) || list.length === 0) {
+        throw new Error('Le paramètre doit être un tableau non vide');
+    }
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+// Fonction spécifique pour les multiplicateurs de payout
+function getRandomPayout(gameType) {
+    const payoutsConfig = {
+        scissor: 1.98,
+        turtle: 1.94,
+        mines: [
+            1.08, 1.13, 1.17, 1.24, 1.29, 1.30, 1.37, 1.41, 1.56, 1.74,
+            1.94, 2.18, 2.47, 2.62, 2.83, 3.00, 3.26, 3.81,
+            3.70, 4.5, 5.06, 5.40, 6.60, 8.25, 9.10, 10.0, 11.0, 12.5, 14.0, 16.0, 18.5, 21.0, 24.75
+        ],
+        dice: [1.03, 1.14, 1.31, 1.62, 2.28, 3.42, 5.7, 11.4, 34.2]
+    };
+
+    const payout = payoutsConfig[gameType];
+
+    if (Array.isArray(payout)) {
+        return getRandomFromList(payout);
+    }
+
+    return payout || 1; // Fallback si le gameType n'existe pas
+}
+
+// Version optimisée de generateFakeBetHistories
 async function generateFakeBetHistories(gameTypeParam = null) {
     try {
         const gameTypes = {
@@ -64,7 +94,7 @@ async function generateFakeBetHistories(gameTypeParam = null) {
             4: 'dice'
         };
 
-        // Récupérer les utilisateurs depuis la base
+        // Récupération des utilisateurs
         const users = await UserModel.find(
             { userName: { $in: fakeUsers.map(u => u.userName) } },
             { _id: 1, userNickName: 1 }
@@ -74,57 +104,54 @@ async function generateFakeBetHistories(gameTypeParam = null) {
             throw new Error('Aucun utilisateur fictif trouvé en base de données');
         }
 
-        // Sélection aléatoire d'un utilisateur
+        // Sélection aléatoire
         const randomUser = users[Math.floor(Math.random() * users.length)];
-
-        // Trouver le coinTypePlay correspondant dans fakeUsers
         const userInFakeList = fakeUsers.find(u => u.userNickName === randomUser.userNickName);
-        const coinTypePlay = userInFakeList?.coinTypePlay || 'bnb'; // Fallback si non trouvé
+        const coinTypePlay = userInFakeList?.coinTypePlay || 'bnb';
 
-        // Récupérer la crypto config
+        // Validation crypto
         const userCrypto = cryptoAvailable[coinTypePlay];
         if (!userCrypto) {
             throw new Error(`Type de crypto non reconnu: ${coinTypePlay}`);
         }
 
         // Détermination du type de jeu
-        let gameType;
-        if (gameTypeParam && gameTypes[gameTypeParam]) {
-            gameType = gameTypes[gameTypeParam];
-        } else {
-            const randomIndex = Math.floor(Math.random() * 4) + 1;
-            gameType = gameTypes[randomIndex];
-        }
+        const gameType = gameTypeParam && gameTypes[gameTypeParam]
+            ? gameTypes[gameTypeParam]
+            : gameTypes[Math.floor(Math.random() * 4) + 1];
+
+        // Calcul des montants
+        const betAmount = getRandomBetAmount(userCrypto.coinType);
+        const payoutMultiplier = getRandomPayout(gameType);
+        const precision = precisionByCurrency[userCrypto.coinType] || 6;
+        const payoutAmount = parseFloat((betAmount * payoutMultiplier).toFixed(precision));
+        const roundResult = 'win'
 
         // Création de l'historique
         const history = {
             userId: randomUser._id,
-            userNickName: randomUser.userNickName,
             gameType,
-            roundNumber: `round_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-            betAmount: getRandomBetAmount(userCrypto.coinType),
+            roundNumber: `round_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            betAmount,
             coinType: userCrypto,
-            payout: getRandomPayout(gameType),
-            roundResult: 'finish', // finish, payout , lost
+            payout: payoutMultiplier,
+            roundResult,
             roundState: true,
-            createdAt: new Date()
         };
 
 
-        // Sauvegarde en base de données
+        console.log(history);
+
         await BetHistory.create(history);
+        return history;
 
     } catch (err) {
-        console.error('Erreur lors de la création de l\'historique:', err);
+        console.error('Erreur lors de la génération de l\'historique:', err);
         throw err;
     }
 }
 
-
-
-
-
-// Fonctions utilitaires restées identiques
+// Fonction pour les montants de pari (inchangée)
 function getRandomBetAmount(coinType) {
     const config = configPlayAmount[coinType];
     if (!config) throw new Error(`Crypto non supportée: ${coinType}`);
@@ -135,34 +162,6 @@ function getRandomBetAmount(coinType) {
     const rand = Math.random() * (max - min) + min;
     return parseFloat(rand.toFixed(precision));
 }
-
-function getRandomPayout(gameType) {
-    const payouts = {
-        scissor: 1.98,
-        turtle: 1.94,
-        mines: [
-            1.08, 1.13, 1.17, 1.24, 1.29, 1.30, 1.37, 1.41, 1.56, 1.74,
-            1.94, 2.18, 2.47, 2.62, 2.83, 3.00, 3.26, 3.81,
-            3.70, 4.5, 5.06, 5.40, 6.60, 8.25, 9.10, 10.0, 11.0, 12.5, 14.0, 16.0, 18.5, 21.0, 24.75
-        ],
-        dice: [1.03, 1.14, 1.31, 1.62, 2.28, 3.42, 5.7, 11.4, 34.2]
-    };
-    if (['mines', 'dice'].includes(gameType)) {
-        return payouts[gameType][Math.floor(Math.random() * payouts[gameType].length)];
-    }
-    return payouts[gameType] || 1;
-}
-
-
-
-
-
-
-
-
-
-
-
 
 async function deleteAllFakeHistories() {
     try {
@@ -192,39 +191,6 @@ async function deleteAllFakeHistories() {
 }
 
 
-
-// 2. Fonction pour vérifier le ratio de wins (inchangée)
-async function checkWinRatio() {
-    try {
-        const lastHistories = await BetHistory.find().sort({ createdAt: -1 }).limit(10);
-        console.log("Derniers résultats:", lastHistories.map(h => h.roundResult));
-
-        const lossCount = lastHistories.filter(h => h.roundResult === 'lost').length;
-        const winCount = lastHistories.filter(h => h.roundResult === 'win' || h.roundResult === 'payout' || h.roundResult === 'finish' || h.roundResult === null).length;
-
-        console.log(`[DEBUG] Wins: ${winCount}, Losses: ${lossCount}`);
-
-        // ✅ Autorisé si :
-        // - 0, 1 ou 2 pertes (peu importe les wins)
-        // - OU si on a au moins 8 wins ET exactement 2 pertes
-        if (lossCount <= 2) {
-            if (winCount >= 8 && lossCount === 2) {
-                return true; // condition stricte avec 8 wins et 2 pertes
-            } else if (lossCount < 2) {
-                return true; // 0 ou 1 perte = toujours autorisé
-            }
-        }
-
-        // ❌ Sinon on bloque
-        return false;
-    } catch (err) {
-        console.error('Erreur vérification ratio:', err);
-        throw err;
-    }
-}
-
-
-// Votre fonction principale modifiée
 async function generateFakeBetsSafely() {
     try {
         // Vérifier le ratio avant génération
@@ -234,6 +200,30 @@ async function generateFakeBetsSafely() {
         //     console.log('Trop de wins récents (8+/10), génération annulée');
         //     return;
         // }
+
+        // Génération des 4 types de paris
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
+
+        // Génération des 4 types de paris
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
+
+        // Génération des 4 types de paris
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
+
+        // Génération des 4 types de paris
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
 
         // Génération des 4 types de paris
         await generateFakeBetHistories(1); // Scissor
@@ -252,6 +242,4 @@ module.exports = {
     createFakeUsersIfNotExist,
     deleteAllFakeHistories,
     generateFakeBetsSafely
-
-
 };

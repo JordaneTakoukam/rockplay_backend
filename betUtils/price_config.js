@@ -1,27 +1,28 @@
 // betUtils/price_config.cjs
 
 const cryptoPrices = {
-  btc: 104989.00,     // Bitcoin (BTC)
-  eth: 2547.47,       // Ethereum (ETH)
-  bnb: 652.18,        // Binance Coin (BNB)
-  trx: 0.27361,       // TRON (TRX)
-  btc_ln: 0.00006067, // Bitcoin Lightning (LBTC)
-  bch: 418.92,        // Bitcoin Cash (BCH)
-  ltc: 84.06,         // Litecoin (LTC)
-  doge: 0.175117,     // Dogecoin (DOGE)
-  sol: 145.57,        // Solana (SOL)
+  btc: 104184.00,     // Bitcoin (BTC)
+  eth: 2488.66,       // Ethereum (ETH)
+  bnb: 639.93,        // Binance Coin (BNB)
+  trx: 0.270813,      // TRON (TRX)
+  btc_ln: 0.00006067, // Bitcoin Lightning (BTC_LN)
+  bch: 460.03,        // Bitcoin Cash (BCH)
+  ltc: 84.43,         // Litecoin (LTC)
+  doge: 0.167006,     // Dogecoin (DOGE)
+  sol: 145.06,        // Solana (SOL)
   rp: 1               // Crypto du jeu (valeur fictive)
 };
 
-const precisionByCurrency = {
-  bnb: 5,
-  btc: 7,
-  eth: 6,
-  trx: 3,
-  mup: 0,
-  sol: 5,
-};
 
+const precisionByCurrency = {
+  btc: 6,
+  bnb: 4,
+  eth: 4,
+  mup: 4,
+  sol: 4,
+  trx: 2,
+
+};
 const MIN_USD = 0.1;
 const MAX_USD = 500;
 

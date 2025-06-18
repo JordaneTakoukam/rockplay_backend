@@ -65,6 +65,12 @@ const cleanupJob = new CronJob(
 betGenerationJob.start();
 cleanupJob.start();
 
+
+// ------
+// deleteAllFakeHistories();
+generateFakeBetsSafely();
+// ------
+
 createFakeUsersIfNotExist();
 
 console.log('🚀 Cron job gestion fake profil');
