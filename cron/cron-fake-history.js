@@ -67,8 +67,10 @@ cleanupJob.start();
 
 
 // ------
-deleteAllFakeHistories();
+//deleteAllFakeHistories();
 // ------
+generateFakeBetsSafely();
+
 
 createFakeUsersIfNotExist();
 
