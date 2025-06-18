@@ -193,39 +193,7 @@ async function deleteAllFakeHistories() {
 
 async function generateFakeBetsSafely() {
     try {
-        // Vérifier le ratio avant génération
-        // const canGenerate = await checkWinRatio();
 
-        // if (!canGenerate) {
-        //     console.log('Trop de wins récents (8+/10), génération annulée');
-        //     return;
-        // }
-
-        // Génération des 4 types de paris
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
-
-        // Génération des 4 types de paris
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
-
-        // Génération des 4 types de paris
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
-
-        // Génération des 4 types de paris
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
-
-        // Génération des 4 types de paris
         await generateFakeBetHistories(1); // Scissor
         await generateFakeBetHistories(2); // Turtle
         await generateFakeBetHistories(3); // Mines
