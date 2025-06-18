@@ -123,8 +123,6 @@ async function generateFakeBetHistories(gameTypeParam = null) {
         // Calcul des montants
         const betAmount = getRandomBetAmount(userCrypto.coinType);
         const payoutMultiplier = getRandomPayout(gameType);
-        const precision = precisionByCurrency[userCrypto.coinType] || 6;
-        const payoutAmount = parseFloat((betAmount * payoutMultiplier).toFixed(precision));
         const roundResult = 'win'
 
         // Création de l'historique
@@ -138,9 +136,6 @@ async function generateFakeBetHistories(gameTypeParam = null) {
             roundResult,
             roundState: true,
         };
-
-
-        console.log(history);
 
         await BetHistory.create(history);
         return history;
@@ -157,7 +152,7 @@ function getRandomBetAmount(coinType) {
     if (!config) throw new Error(`Crypto non supportée: ${coinType}`);
 
     let { min, max } = config;
-    max = max / 3.5;
+    max = max / 4;
     const precision = precisionByCurrency[coinType] || 6;
     const rand = Math.random() * (max - min) + min;
     return parseFloat(rand.toFixed(precision));
@@ -182,7 +177,7 @@ async function deleteAllFakeHistories() {
             userId: { $in: fakeUserIds }
         });
 
-        console.log(`${result.deletedCount} historiques fictifs supprimés.`);
+        // console.log(`${result.deletedCount} historiques fictifs supprimés.`);
         return result;
     } catch (err) {
         console.error('Erreur lors de la suppression des historiques :', err);
@@ -193,6 +188,18 @@ async function deleteAllFakeHistories() {
 
 async function generateFakeBetsSafely() {
     try {
+
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
+
+
+        await generateFakeBetHistories(1); // Scissor
+        await generateFakeBetHistories(2); // Turtle
+        await generateFakeBetHistories(3); // Mines
+        await generateFakeBetHistories(4); // Dice
+
 
         await generateFakeBetHistories(1); // Scissor
         await generateFakeBetHistories(2); // Turtle
