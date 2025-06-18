@@ -195,16 +195,16 @@ async function generateFakeBetsSafely() {
         await generateFakeBetHistories(4); // Dice
 
 
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
+        // await generateFakeBetHistories(1); // Scissor
+        // await generateFakeBetHistories(2); // Turtle
+        // await generateFakeBetHistories(3); // Mines
+        // await generateFakeBetHistories(4); // Dice
 
 
-        await generateFakeBetHistories(1); // Scissor
-        await generateFakeBetHistories(2); // Turtle
-        await generateFakeBetHistories(3); // Mines
-        await generateFakeBetHistories(4); // Dice
+        // await generateFakeBetHistories(1); // Scissor
+        // await generateFakeBetHistories(2); // Turtle
+        // await generateFakeBetHistories(3); // Mines
+        // await generateFakeBetHistories(4); // Dice
 
         console.log('Generated !!\n');
     } catch (err) {
